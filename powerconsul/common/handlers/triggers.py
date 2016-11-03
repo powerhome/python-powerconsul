@@ -34,10 +34,12 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
         """
         Return a listing of datastores.
         """
-        print 'START'
+        with open('/tmp/triggered', 'w') as f:
+            f.write('START')
 
     def stop(self):
         """
         Return a listing of virtual machines.
         """
-        print 'STOP'
+        with open('/tmp/triggered', 'w') as f:
+            f.write('STOP')

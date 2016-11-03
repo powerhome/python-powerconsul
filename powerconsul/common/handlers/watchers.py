@@ -1,6 +1,7 @@
 import json
 from sys import stdin
 from select import select
+from subprocess import Popen
 
 # Power Consul modules
 from powerconsul.common.args.options import OPTIONS
@@ -35,6 +36,9 @@ class PowerConsulHandler_Watchers(PowerConsulHandler_Base):
     def __init__(self):
         super(PowerConsulHandler_Watchers, self).__init__(self.id)
 
+        # Node's services keypath
+        self.keypath = 'services/{0}/{1}'.format(POWERCONSUL.HOST, POWERCONSUL.ARGS.get('command'))
+
     def _get_services(self):
         """
         Parse incoming Consul JSON data from stdin and extract environment services.
@@ -59,16 +63,30 @@ class PowerConsulHandler_Watchers(PowerConsulHandler_Base):
         except Exception as e:
             POWERCONSUL.die('Failed to parse Consul input: {0}'.format(str(e)))
 
+    def _trigger(self, action):
+        """
+        Parent method for running a trigger script.
+        """
+        proc = Popen(['/usr/bin/env', 'powerconsul', 'trigger', action])
+        proc.call()
+
+    def _put(self):
+        """
+        Private method for putting service states.
+        """
+        POWERCONSUL.API.kv.put(self.keypath, json.dumps(envJSON))
+
+        # Test fire trigger
+        self._trigger('start')
+
     def critical(self):
         """
         Return a listing of datastores.
         """
-        POWERCONSUL.debug('critical services:')
-        print self._get_services()
+        self._put()
 
     def warning(self):
         """
         Return a listing of virtual machines.
         """
-        POWERCONSUL.debug('warning services:')
-        print self._get_services()
+        self._put()
