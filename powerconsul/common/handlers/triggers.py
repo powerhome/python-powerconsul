@@ -41,16 +41,20 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
     def __init__(self):
         super(PowerConsulHandler_Triggers, self).__init__(self.id)
 
+        # Service attributes
+        self.serviceJSON = json.loads(POWERCONSUL.ARGS.get('service'))
+        self.serviceName = self.serviceJSON['ServiceName']
+
     def critical(self):
         """
         Trigger an action for a service in a critical state.
         """
-        with open('/tmp/triggered_critical', 'w') as f:
-            f.write(POWERCONSUL.ARGS.get('service'))
+        with open('/tmp/triggered_critical_{0}'.format(self.serviceName), 'w') as f:
+            f.write(self.serviceJSON)
 
     def warning(self):
         """
         Trigger an action for a service in a warning state.
         """
-        with open('/tmp/triggered_warning', 'w') as f:
-            f.write(POWERCONSUL.ARGS.get('service'))
+        with open('/tmp/triggered_warning_{0}'.format(self.serviceName), 'w') as f:
+            f.write(self.serviceName)
