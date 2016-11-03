@@ -1,5 +1,6 @@
 import __builtin__
 from os import geteuid
+from consul import Consul
 from traceback import print_exc
 from importlib import import_module
 from sys import stderr, exit, exc_info
@@ -13,6 +14,9 @@ class PowerConsulCommon(object):
         # Power Consul Extended Objects
         self.HANDLERS = None
         self.ARGS     = None
+
+        # Consul API
+        self.API      = Consul()
 
     def bootstrap(self):
         """
