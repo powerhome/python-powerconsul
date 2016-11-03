@@ -1,3 +1,6 @@
+import json
+
+# Power Consul modules
 from powerconsul.common.args.options import OPTIONS
 from powerconsul.common.handlers.base import PowerConsulHandler_Base
 
@@ -15,31 +18,39 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
     }
 
     # Supported options
-    options = [] + OPTIONS
+    options = [
+        {
+            "short": "s",
+            "long": "service",
+            "help": "The service check as a JSON string.",
+            "action": "store",
+            "required": True
+        }
+    ] + OPTIONS
 
     # Supported actions
     commands = {
-        "start": {
-            "help": "Start a service."
+        "critical": {
+            "help": "Trigger an action for a service in a critical state."
         },
-        "stop": {
-            "help": "Stop a service."
+        "warning": {
+            "help": "Trigger an action for a service in a warning state."
         }
     }
 
     def __init__(self):
         super(PowerConsulHandler_Triggers, self).__init__(self.id)
 
-    def start(self):
+    def critical(self):
         """
-        Return a listing of datastores.
+        Trigger an action for a service in a critical state.
         """
-        with open('/tmp/triggered', 'w') as f:
-            f.write('START')
+        with open('/tmp/triggered_critical', 'w') as f:
+            f.write(POWERCONSUL.ARGS.get('service'))
 
-    def stop(self):
+    def warning(self):
         """
-        Return a listing of virtual machines.
+        Trigger an action for a service in a warning state.
         """
-        with open('/tmp/triggered', 'w') as f:
-            f.write('STOP')
+        with open('/tmp/triggered_warning', 'w') as f:
+            f.write(POWERCONSUL.ARGS.get('service'))

@@ -63,30 +63,34 @@ class PowerConsulHandler_Watchers(PowerConsulHandler_Base):
         except Exception as e:
             POWERCONSUL.die('Failed to parse Consul input: {0}'.format(str(e)))
 
-    def _trigger(self, action):
+    def _trigger(self, state, service):
         """
         Parent method for running a trigger script.
         """
-        proc = Popen(['/usr/bin/env', 'powerconsul', 'trigger', action])
+        proc = Popen(['/usr/bin/env', 'powerconsul', 'trigger', state, '-s', '\'{0}\''.format(json.dumps(service))])
         proc.communicate()
 
-    def _put(self):
+    def _put(self, state):
         """
         Private method for putting service states.
         """
-        POWERCONSUL.API.kv.put(self.keypath, json.dumps(self._get_services()))
+        services = self._get_services()
 
-        # Test fire trigger
-        self._trigger('start')
+        # Store the services
+        POWERCONSUL.API.kv.put(self.keypath, json.dumps(services))
+
+        # Trigger the service actions
+        for service in services:
+            self._trigger(state, service)
 
     def critical(self):
         """
         Return a listing of datastores.
         """
-        self._put()
+        self._put('critical')
 
     def warning(self):
         """
         Return a listing of virtual machines.
         """
-        self._put()
+        self._put('warning')
