@@ -68,7 +68,7 @@ class PowerConsulHandler_Watchers(PowerConsulHandler_Base):
         Parent method for running a trigger script.
         """
         proc = Popen(['/usr/bin/env', 'powerconsul', 'trigger', action])
-        proc.call()
+        proc.communicate()
 
     def _put(self):
         """
