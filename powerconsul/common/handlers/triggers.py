@@ -50,11 +50,11 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
         Trigger an action for a service in a critical state.
         """
         with open('/tmp/triggered_critical_{0}'.format(self.serviceName), 'w') as f:
-            f.write(self.serviceJSON)
+            f.write(json.dumps(self.serviceJSON))
 
     def warning(self):
         """
         Trigger an action for a service in a warning state.
         """
         with open('/tmp/triggered_warning_{0}'.format(self.serviceName), 'w') as f:
-            f.write(self.serviceName)
+            f.write(json.dumps(self.serviceJSON))
