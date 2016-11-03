@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 __version__ = '0.1-1'
 
+import json
 from sys import argv, exit
 
 class PowerConsul(object):
@@ -44,6 +45,10 @@ class PowerConsul(object):
 
             # Construct base argument parser
             POWERCONSUL.ARGS.construct()
+
+            # Debug tracing
+            POWERCONSUL.debug('environment={0}'.format(POWERCONSUL.ENV))
+            POWERCONSUL.debug('arguments={0}'.format(json.dumps(POWERCONSUL.ARGS.dict())))
 
             # If getting help for a command
             if POWERCONSUL.ARGS.get('command') == 'help':

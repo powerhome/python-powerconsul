@@ -1,3 +1,8 @@
+import json
+from sys import stdin
+from select import select
+
+# Power Consul modules
 from powerconsul.common.args.options import OPTIONS
 from powerconsul.common.handlers.base import PowerConsulHandler_Base
 
@@ -30,14 +35,40 @@ class PowerConsulHandler_Watchers(PowerConsulHandler_Base):
     def __init__(self):
         super(PowerConsulHandler_Watchers, self).__init__(self.id)
 
+    def _get_services(self):
+        """
+        Parse incoming Consul JSON data from stdin and extract environment services.
+        """
+
+        # Must have stdin data
+        if not select([stdin,],[],[],0.0)[0]:
+            POWERCONSUL.die('Command "powerconsul watch" requires data from STDIN!')
+
+        try:
+            consulInput = json.loads(''.join(stdin.readlines()))
+
+            # Extract environment services
+            envJSON     = []
+            for service in consulInput:
+                nodeAttrs = service['Node'].split('-')
+                if nodeAttrs[0] == POWERCONSUL.ENV:
+                    envJSON.append(service)
+            return envJSON
+
+        # Failed to retrieve stdin
+        except Exception as e:
+            POWERCONSUL.die('Failed to parse Consul input: {0}'.format(str(e)))
+
     def critical(self):
         """
         Return a listing of datastores.
         """
-        print 'CRITICAL'
+        POWERCONSUL.debug('critical services:')
+        print self._get_services()
 
     def warning(self):
         """
         Return a listing of virtual machines.
         """
-        print 'WARNING'
+        POWERCONSUL.debug('warning services:')
+        print self._get_services()

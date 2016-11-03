@@ -1,9 +1,11 @@
 import __builtin__
+import re
 from os import geteuid
 from consul import Consul
+from socket import gethostname
 from traceback import print_exc
 from importlib import import_module
-from sys import stderr, exit, exc_info
+from sys import stderr, exit, exc_info, stdout
 
 class PowerConsulCommon(object):
     """
@@ -17,6 +19,22 @@ class PowerConsulCommon(object):
 
         # Consul API
         self.API      = Consul()
+
+        # PowerHRG environment
+        self.ENV      = self._get_environment()
+
+    def _get_environment(self):
+        """
+        Extract the PowerHRG environment from the hostname.
+        """
+        return re.compile(r'(^[^-]*)-.*$').sub(r'\g<1>', gethostname())
+
+    def debug(self, message):
+        """
+        Show a debug message.
+        """
+        if POWERCONSUL.ARGS.get('debug'):
+            stdout.write('> debug: {0}\n'.format(message))
 
     def bootstrap(self):
         """
