@@ -74,7 +74,7 @@ class PowerConsulHandler_Watchers(PowerConsulHandler_Base):
         """
         Private method for putting service states.
         """
-        POWERCONSUL.API.kv.put(self.keypath, json.dumps(envJSON))
+        POWERCONSUL.API.kv.put(self.keypath, json.dumps(self._get_services()))
 
         # Test fire trigger
         self._trigger('start')
