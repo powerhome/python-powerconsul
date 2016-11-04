@@ -36,9 +36,6 @@ class PowerConsulHandler_Watchers(PowerConsulHandler_Base):
     def __init__(self):
         super(PowerConsulHandler_Watchers, self).__init__(self.id)
 
-        # Node's services keypath
-        self.keypath = 'services/{0}/{1}'.format(POWERCONSUL.HOST, POWERCONSUL.ARGS.get('command'))
-
     def _get_services(self):
         """
         Parse incoming Consul JSON data from stdin and extract node services.
@@ -50,6 +47,7 @@ class PowerConsulHandler_Watchers(PowerConsulHandler_Base):
 
         try:
             consulInput = json.loads(''.join(stdin.readlines()))
+            POWERCONSUL.LOG.info(json.dumps(consulInput))
 
             # Extract node services
             nodeJSON    = []
