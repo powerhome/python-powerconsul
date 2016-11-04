@@ -47,9 +47,6 @@ class Logger:
         if not isdir(log_dir):
             makedirs(log_dir, 0755)
 
-        # Use a custom logging class
-        logging.setLoggerClass(LogProxy)
-
         # Set the logger module name
         logger = getLogger(name)
 
