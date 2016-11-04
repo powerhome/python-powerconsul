@@ -47,7 +47,6 @@ class PowerConsulHandler_Watchers(PowerConsulHandler_Base):
 
         try:
             consulInput = json.loads(''.join(stdin.readlines()))
-            POWERCONSUL.LOG.info(json.dumps(consulInput))
 
             # Extract node services
             nodeJSON    = []
@@ -75,7 +74,7 @@ class PowerConsulHandler_Watchers(PowerConsulHandler_Base):
 
         # Trigger the service actions
         for service in services:
-            POWERCONSUL.LOG.info('Service action triggered: {0}'.format(str(service)))
+            POWERCONSUL.LOG.info('Service action triggered: state={0}, service={1}'.format(state, service['ServiceID']))
             self._trigger(state, service)
 
     def critical(self):
