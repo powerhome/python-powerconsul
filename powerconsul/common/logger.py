@@ -30,7 +30,7 @@ class Logger:
     The log formatter returns the log message as a string value.
     """
     @ staticmethod
-    def construct(name, log_file, log_level='INFO'):
+    def construct(name, log_file, log_level):
         """
         Construct the logging object. If the log handle already exists don't create
         anything so we don't get duplicated log messages.
@@ -64,7 +64,7 @@ class Logger:
         # Return the logger
         return getLogger(name)
 
-def create(name, log_file='/var/log/powerconsul.log', log_level=None):
+def create(name, log_file='/var/log/powerconsul.log', log_level='INFO'):
     """
     Factory method used to construct and return a Python logging object.
     """
