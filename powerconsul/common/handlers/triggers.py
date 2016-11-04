@@ -1,4 +1,5 @@
 import json
+from subprocess import Popen, PIPE
 
 # Power Consul modules
 from powerconsul.common.args.options import OPTIONS
@@ -45,6 +46,18 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
         self.serviceJSON = json.loads(POWERCONSUL.ARGS.get('service'))
         self.serviceName = self.serviceJSON['ServiceName']
 
+    def _run_action(self, action):
+        """
+        Run the state action.
+        """
+        proc = Popen(action.split(' '), stdout=PIPE, stderr=PIPE)
+        out, err = proc.communicate()
+
+        # Command failed
+        if proc.returncode != 0:
+            return POWERCONSUL.LOG.error('Failed to run [{0}]: {1}'.format(action, str(err)))
+        POWERCONSUL.LOG.info('Successfully ran [{0}]: {1}'.format(action, str(out)))
+
     def _get_action(self, service, state):
         """
         Retrieve an action for a service state trigger.
@@ -53,7 +66,7 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
 
         # No action found
         if not data:
-            return '/bin/true'
+            return '/usr/bin/env true'
 
         # Return action string
         return data['Value']
@@ -67,6 +80,9 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
         action = self._get_action(self.serviceName, 'critical')
         POWERCONSUL.LOG.info('state=critical, service={0}, action={1}'.format(self.serviceName, action))
 
+        # Run the action
+        self._run_action(action)
+
     def warning(self):
         """
         Trigger an action for a service in a warning state.
@@ -75,3 +91,6 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
         # Action to run
         action = self._get_action(self.serviceName, 'warning')
         POWERCONSUL.LOG.info('state=warning, service={0}, action={1}'.format(self.serviceName, action))
+
+        # Run the action
+        self._run_action(action)
