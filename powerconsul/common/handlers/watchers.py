@@ -41,7 +41,7 @@ class PowerConsulHandler_Watchers(PowerConsulHandler_Base):
 
     def _get_services(self):
         """
-        Parse incoming Consul JSON data from stdin and extract environment services.
+        Parse incoming Consul JSON data from stdin and extract node services.
         """
 
         # Must have stdin data
@@ -51,13 +51,12 @@ class PowerConsulHandler_Watchers(PowerConsulHandler_Base):
         try:
             consulInput = json.loads(''.join(stdin.readlines()))
 
-            # Extract environment services
-            envJSON     = []
+            # Extract node services
+            nodeJSON    = []
             for service in consulInput:
-                nodeAttrs = service['Node'].split('-')
-                if nodeAttrs[0] == POWERCONSUL.ENV:
-                    envJSON.append(service)
-            return envJSON
+                if service['Node'] == POWERCONSUL.HOST:
+                    nodeJSON.append(service)
+            return nodeJSON
 
         # Failed to retrieve stdin
         except Exception as e:
@@ -75,9 +74,6 @@ class PowerConsulHandler_Watchers(PowerConsulHandler_Base):
         Private method for putting service states.
         """
         services = self._get_services()
-
-        # Store the services
-        POWERCONSUL.API.kv.put(self.keypath, json.dumps(services))
 
         # Trigger the service actions
         for service in services:
