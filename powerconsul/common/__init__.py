@@ -24,6 +24,9 @@ class PowerConsulCommon(object):
         self.ENV      = self._get_environment()
         self.HOST     = gethostname()
 
+        # Logger
+        self.LOG      = None
+
     def _get_environment(self):
         """
         Extract the PowerHRG environment from the hostname.

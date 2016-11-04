@@ -45,16 +45,33 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
         self.serviceJSON = json.loads(POWERCONSUL.ARGS.get('service'))
         self.serviceName = self.serviceJSON['ServiceName']
 
+    def _get_action(self, service, state):
+        """
+        Retrieve an action for a service state trigger.
+        """
+        index, data = POWERCONSUL.API.kv.get('triggers/{0}/{1}'.format(service, state))
+
+        # No action found
+        if not data:
+            return '/bin/true'
+
+        # Return action string
+        return data['Value']
+
     def critical(self):
         """
         Trigger an action for a service in a critical state.
         """
-        with open('/tmp/triggered_critical_{0}'.format(self.serviceName), 'w') as f:
-            f.write(json.dumps(self.serviceJSON))
+
+        # Action to run
+        action = self._get_action(self.serviceName, 'critical')
+        POWERCONSUL.LOG.info('state=critical, service={1}, action={2}'.format(self.serviceName, action))
 
     def warning(self):
         """
         Trigger an action for a service in a warning state.
         """
-        with open('/tmp/triggered_warning_{0}'.format(self.serviceName), 'w') as f:
-            f.write(json.dumps(self.serviceJSON))
+
+        # Action to run
+        action = self._get_action(self.serviceName, 'warning')
+        POWERCONSUL.LOG.info('state=warning, service={1}, action={2}'.format(self.serviceName, action))

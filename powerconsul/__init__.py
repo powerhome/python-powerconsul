@@ -4,6 +4,9 @@ __version__ = '0.1-1'
 import json
 from sys import argv, exit
 
+# Power Consul modules
+import powerconsul.common.logger as logger
+
 class PowerConsul(object):
     """
     Public class for running Power Consul utilities.
@@ -20,6 +23,9 @@ class PowerConsul(object):
             isnot = None,
             error = 'Cannot load unsupported command: {0}'.format(argv[0]),
             code  = 1)
+
+        # Setup the logger
+        POWERCONSUL.LOG = logger.create(command)
 
         # Run the target command
         return command().run()
@@ -45,10 +51,6 @@ class PowerConsul(object):
 
             # Construct base argument parser
             POWERCONSUL.ARGS.construct()
-
-            # Debug tracing
-            POWERCONSUL.debug('environment={0}'.format(POWERCONSUL.ENV))
-            POWERCONSUL.debug('arguments={0}'.format(json.dumps(POWERCONSUL.ARGS.dict())))
 
             # If getting help for a command
             if POWERCONSUL.ARGS.get('command') == 'help':
