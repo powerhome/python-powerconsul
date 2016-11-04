@@ -74,6 +74,10 @@ class PowerConsulHandler_Watchers(PowerConsulHandler_Base):
 
         # Trigger the service actions
         for service in services:
+
+            # Service output is empty, so assume this is initial startup
+            if service['Output'] == '' or not service['Output']:
+                continue
             POWERCONSUL.LOG.info('Service action triggered: state={0}, service={1}'.format(state, service['ServiceID']))
             self._trigger(state, service)
 
