@@ -65,7 +65,7 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
 
         # Action to run
         action = self._get_action(self.serviceName, 'critical')
-        POWERCONSUL.LOG.info('state=critical, service={1}, action={2}'.format(self.serviceName, action))
+        POWERCONSUL.LOG.info('state=critical, service={0}, action={1}'.format(self.serviceName, action))
 
     def warning(self):
         """
@@ -74,4 +74,4 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
 
         # Action to run
         action = self._get_action(self.serviceName, 'warning')
-        POWERCONSUL.LOG.info('state=warning, service={1}, action={2}'.format(self.serviceName, action))
+        POWERCONSUL.LOG.info('state=warning, service={0}, action={1}'.format(self.serviceName, action))
