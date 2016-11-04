@@ -77,6 +77,7 @@ class PowerConsulHandler_Watchers(PowerConsulHandler_Base):
 
         # Trigger the service actions
         for service in services:
+            POWERCONSUL.LOG.info('Service action triggered: {0}'.format(str(service)))
             self._trigger(state, service)
 
     def critical(self):
