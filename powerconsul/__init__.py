@@ -25,7 +25,7 @@ class PowerConsul(object):
             code  = 1)
 
         # Setup the logger
-        POWERCONSUL.LOG = logger.create(command)
+        POWERCONSUL.LOG = logger.create(argv[0])
 
         # Run the target command
         return command().run()
