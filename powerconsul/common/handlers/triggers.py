@@ -55,8 +55,8 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
 
         # Command failed
         if proc.returncode != 0:
-            return POWERCONSUL.LOG.error('Failed to run [{0}]: {1}'.format(action, str(err)))
-        POWERCONSUL.LOG.info('Successfully ran [{0}]: {1}'.format(action, str(out)))
+            return POWERCONSUL.LOG.error('Failed to run [{0}]: {1}'.format(action, str(err).rstrip()))
+        POWERCONSUL.LOG.info('Successfully ran [{0}]: {1}'.format(action, str(out).rstrip()))
 
     def _get_action(self, service, state):
         """
