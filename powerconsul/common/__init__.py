@@ -43,14 +43,14 @@ class PowerConsulCommon(object):
         """
         Extract the server role from the hostname.
         """
-        hostname = hostname ? hostname:gethostname()
+        hostname = (hostname) ? hostname:gethostname()
         return re.compile(r'(^[^0-9]*)[0-9]*$').sub(r'\g<1>', hostname.replace('{0}-'.format(self.ENV), ''))
 
     def getEnv(self, hostname=False):
         """
         Extract the PowerHRG environment from the hostname.
         """
-        hostname = hostname ? hostname:gethostname()
+        hostname = (hostname) ? hostname:gethostname()
         return re.compile(r'(^[^-]*)-.*$').sub(r'\g<1>', hostname)
 
     def bootstrap(self):
