@@ -1,5 +1,6 @@
 import __builtin__
 import re
+import json
 from os import geteuid
 from consul import Consul
 from socket import gethostname
@@ -17,21 +18,40 @@ class PowerConsulCommon(object):
         self.HANDLERS = None
         self.ARGS     = None
 
-        # Consul API
+        # Consul API / configuration
         self.API      = Consul()
+        self.CONFIG   = self._get_config()
 
         # PowerHRG environment
-        self.ENV      = self._get_environment()
+        self.ENV      = self.getEnv()
+        self.ROLE     = self.getRole()
         self.HOST     = gethostname()
 
         # Logger
         self.LOG      = None
 
-    def _get_environment(self):
+    def _get_config(self):
+        """
+        Parse the main Consul agent configuration.
+        """
+        try:
+            return json.loads(open('/etc/consul/config.json', 'r').read())
+        except Exception as e:
+            self.die('Failed to load Consul configuration: {0}'.format(str(e)))
+
+    def getRole(self, hostname=False):
+        """
+        Extract the server role from the hostname.
+        """
+        hostname = hostname ? hostname:gethostname()
+        return re.compile(r'(^[^0-9]*)[0-9]*$').sub(r'\g<1>', hostname.replace('{0}-'.format(self.ENV), ''))
+
+    def getEnv(self, hostname=False):
         """
         Extract the PowerHRG environment from the hostname.
         """
-        return re.compile(r'(^[^-]*)-.*$').sub(r'\g<1>', gethostname())
+        hostname = hostname ? hostname:gethostname()
+        return re.compile(r'(^[^-]*)-.*$').sub(r'\g<1>', hostname)
 
     def bootstrap(self):
         """
