@@ -63,6 +63,12 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
             "long": "activenodes",
             "help": "A list of active node hostnames: i.e., node3,node4",
             "action": "store"
+        },
+        {
+            "short": "A",
+            "long": "datacenters",
+            "help": "A list of all available datacenters.",
+            "action": "store"
         }
     ] + OPTIONS
 
@@ -75,6 +81,18 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
 
     def __init__(self):
         super(PowerConsulHandler_Checks, self).__init__(self.id)
+
+        # A list of all available datacenters
+        self.datacenters = self._getDatacenters()
+
+    def _getDatacenters(self):
+        """
+        Get a list of all datacenters if provided.
+        """
+        dcArg = POWERCONSUL.ARGS.get('datacenters')
+        if dcArg:
+            return dcArg.split(',')
+        return None
 
     def isPassing(self, message):
         """
@@ -142,6 +160,40 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
                 self.isPassing('SERVICE OK: {0}'.format(', '.join(msgAttrs)))
             self.isCritical('SERVICE CRITICAL: {0}'.format(', '.join(msgAttrs)))
 
+    def checkConsulServices(self, consulservice, datacenters=None, nodes=None):
+        """
+        Check if any Consul services are passing.
+        """
+        statusList = []
+        services   = []
+
+        # Generate a list of Consul services from the API
+        if datacenters:
+            for dc in datacenters:
+                services + POWERCONSUL.API.health.service(consulservice, dc=dc)[1]
+        else:
+            services = POWERCONSUL.API.health.service(consulservice)[1]
+
+        # Process services
+        for service in services:
+
+            # Node / environment / role
+            node     = service['Node']['Node']
+            nodeEnv  = POWERCONSUL.getEnv(hostname=node)
+            nodeRole = POWERCONSUL.getRole(hostname=node)
+            checks   = service['Checks'][1]
+
+            # If provided a node filter list
+            if nodes and not node in nodes:
+                continue
+
+            # Node must be in the same environment/role
+            if (nodeEnv == POWERCONSUL.ENV) and (nodeRole == POWERCONSUL.ROLE):
+                statusList.append(True if checks['Status'] == 'passing' else False)
+
+        # Return the status list
+        return statusList
+
     def activePassing(self, service, objects):
         """
         If the node is a standby, use this to check if the nodes in the active
@@ -161,33 +213,17 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
             datacenter = objects
 
             # Get active datacenter services
-            for serviceActive in POWERCONSUL.API.health.service(consulService, dc=datacenter)[1]:
-
-                # Node / environment / role
-                node     = serviceActive['Node']['Node']
-                nodeEnv  = POWERCONSUL.getEnv(hostname=node)
-                nodeRole = POWERCONSUL.getRole(hostname=node)
-                checks   = serviceActive['Checks'][1]
-
-                # Node must be in the same environment/role
-                if (nodeEnv == POWERCONSUL.ENV) and (nodeRole == POWERCONSUL.ROLE):
-                    anyPassing = True if checks['Status'] == 'passing' else False
+            for status in self.checkConsulServices(consulService, dc=[datacenters]):
+                if anyPassing:
+                    continue
+                anyPassing = status
 
         # Objects is a list, assume nodes
         if isinstance(objects, list):
-
-            # Get active datacenter services
-            for serviceActive in POWERCONSUL.API.health.service(consulService)[1]:
-
-                # Node / environment / role
-                node     = serviceActive['Node']['Node']
-                nodeEnv  = POWERCONSUL.getEnv(hostname=node)
-                nodeRole = POWERCONSUL.getRole(hostname=node)
-                checks   = serviceActive['Checks'][1]
-
-                # Node must be in the same environment/role
-                if (nodeEnv == POWERCONSUL.ENV) and (nodeRole == POWERCONSUL.ROLE):
-                    anyPassing = True if checks['Status'] == 'passing' else False
+            for status in self.checkConsulServices(consulService, dc=self.datacenters, nodes=objects):
+                if anyPassing:
+                    continue
+                anyPassing = status
 
         # Return the flag that shows in any active services are passing
         return anyPassing
