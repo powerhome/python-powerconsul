@@ -115,13 +115,13 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
             msgAttrs.append('active_dc={0}'.format('yes' if active else 'no'))
 
         # Service should be running
-        if expects === True:
+        if expects == True:
             if running:
                 self.isPassing('SERVICE OK: {0}'.format(', '.join(msgAttrs)))
             self.isCritical('SERVICE CRITICAL: {0}'.format(', '.join(msgAttrs)))
 
         # Service should be stopped
-        if expects === False:
+        if expects == False:
             if not running:
                 self.isPassing('SERVICE OK: {0}'.format(', '.join(msgAttrs)))
             self.isCritical('SERVICE CRITICAL: {0}'.format(', '.join(msgAttrs)))
