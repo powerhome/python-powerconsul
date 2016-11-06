@@ -213,14 +213,14 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
             datacenter = objects
 
             # Get active datacenter services
-            for status in self.checkConsulServices(consulService, dc=[datacenters]):
+            for status in self.checkConsulServices(consulService, datacenters=[datacenters]):
                 if anyPassing:
                     continue
                 anyPassing = status
 
         # Objects is a list, assume nodes
         if isinstance(objects, list):
-            for status in self.checkConsulServices(consulService, dc=self.datacenters, nodes=objects):
+            for status in self.checkConsulServices(consulService, datacenters=self.datacenters, nodes=objects):
                 if anyPassing:
                     continue
                 anyPassing = status
