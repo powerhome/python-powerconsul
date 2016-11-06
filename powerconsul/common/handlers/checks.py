@@ -85,6 +85,9 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
         # A list of all available datacenters
         self.datacenters = self._getDatacenters()
 
+        # Filter by datacenter or node
+        self.filterBy    = ''
+
     def _getDatacenters(self):
         """
         Get a list of all datacenters if provided.
@@ -146,7 +149,7 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
 
         # If running in a cluster, append datacenter attribute to message
         if clustered:
-            msgAttrs.append('active_dc={0}'.format('yes' if active else 'no'))
+            msgAttrs.append('active{0}={1}'.format(self.filterBy, 'yes' if active else 'no'))
 
         # Service should be running
         if expects == True:
@@ -280,6 +283,7 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
 
         """ DATACENTER CHECK """
         if checkDC:
+            self.filterBy = '_dc'
 
             # Local server's datacenter must match either active or standby
             if not localDC in [activeDC, standbyDC]:
@@ -310,6 +314,7 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
 
         """ NODE CHECK """
         if checkNode:
+            self.filterBy = '_node'
             allNodes = activeNodes + standbyNodes
 
             # Local node must be in either active or standby nodes list
