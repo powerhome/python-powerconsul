@@ -127,6 +127,9 @@ class Service(object):
             'local': POWERCONSUL.CONFIG['datacenter']
         }, 'datacenters')
 
+        print self.datacenters
+        print self.nodes
+
         # Cannot cluster by both
         if self.datacenters and self.nodes:
             POWERCONSUL.die('Active/standby datacenters and nodes options are mutually exclusive!')
