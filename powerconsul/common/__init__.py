@@ -6,7 +6,32 @@ from consul import Consul
 from socket import gethostname
 from traceback import print_exc
 from importlib import import_module
-from sys import stderr, exit, exc_info
+from sys import stderr, exit, exc_info, stdout
+
+class Show(object):
+    """
+    Static methods for writing output and exit codes.
+    """
+    @staticmethod
+    def passing(self, message):
+        stdout.write('{0}\n'.format(message))
+        exit(0)
+
+    @staticmethod
+    def warning(self, message):
+        """
+        Show a warning message and exit 1.
+        """
+        stdout.write('{0}\n'.format(message))
+        exit(1)
+
+    @staticmethod
+    def critical(self, message, code=2):
+        """
+        Show a critical message and exit 2.
+        """
+        stdout.write('{0}\n'.format(message))
+        exit(code)
 
 class PowerConsulCommon(object):
     """
@@ -21,6 +46,7 @@ class PowerConsulCommon(object):
         # Consul API / configuration
         self.API      = Consul()
         self.CONFIG   = self._get_config()
+        self.SHOW     = Show
 
         # PowerHRG environment
         self.ENV      = self.getEnv()
