@@ -247,8 +247,8 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
         """ CLUSTERED """
 
         # Active/standby nodes
-        activeNodes  = POWERCONSUL.ARGS.get('activenodes').split(',')
-        standbyNodes = POWERCONSUL.ARGS.get('standbynodes').split(',')
+        activeNodes  = POWERCONSUL.ARGS.get('activenodes', default='').split(',')
+        standbyNodes = POWERCONSUL.ARGS.get('standbynodes', default='').split(',')
         localNode    = POWERCONSUL.HOST
 
         # Active/standby datacenters
