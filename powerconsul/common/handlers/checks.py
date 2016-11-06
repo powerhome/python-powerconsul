@@ -105,14 +105,14 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
         running  = self.isRunning(service)
         msgAttrs = [
             'service={0}'.format(service),
-            'running={0}'.format((running) ? 'yes':'no'),
-            'expects={0}'.format((expects) ? 'running':'stopped'),
-            'clustered={0}'.format((clustered) ? 'yes':'no')
+            'running={0}'.format('yes' if running else 'no'),
+            'expects={0}'.format('running' if expects else 'stopped'),
+            'clustered={0}'.format('yes' if clustered else 'no')
         ]
 
         # If running in a cluster, append datacenter attribute to message
         if clustered:
-            msgAttrs.append('active_dc={0}'.format(active ? 'yes':'no'))
+            msgAttrs.append('active_dc={0}'.format('yes' if active else 'no'))
 
         # Service should be running
         if expects === True:
