@@ -91,7 +91,6 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
         """
         proc     = Popen(['/usr/bin/env', 'service', service, 'status'], stdout=PIPE, stderr=PIPE)
         out, err = proc.communicate()
-        status   = out[0]
 
         # Unrecognized service
         if proc.returncode != 0:
@@ -99,7 +98,7 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
 
         # Service is running
         for runningStr in ['is running', 'start/running']:
-            if runningStr in status:
+            if runningStr in out.rstrip():
                 return True
         return False
 
