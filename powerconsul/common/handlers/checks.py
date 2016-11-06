@@ -233,7 +233,7 @@ class Service(object):
         """
         running  = self.running()
         msgAttrs = [
-            'service={0}'.format(self.service),
+            'service={0}'.format(self.name),
             'running={0}'.format('yes' if running else 'no'),
             'expects={0}'.format('running' if expects else 'stopped'),
             'clustered={0}'.format('yes' if clustered else 'no')
