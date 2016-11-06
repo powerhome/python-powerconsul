@@ -258,6 +258,7 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
 
         # All services active
         if not (activeDC and not standbyDC) and not (activeNodes and not standbyNodes):
+            POWERCONSUL.LOG.info('Clustered service [{0}]: all active'.format(service))
             self.checkRunning(service, clustered=True)
 
         """ ACTIVE/STANDBY """
@@ -284,6 +285,9 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
                     activeDC,
                     standbyDC
                 ))
+            POWERCONSUL.LOG.info('Clustered service [{0}@{1}]: active[{2}]/standby[{3}] datacenters'.format(
+                service, localDC, activeDC, standbyDC
+            ))
 
             """ NODE == ACTIVE """
             if localDC == activeDC:
@@ -312,6 +316,9 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
                     activeNodes,
                     standbyNodes
                 ))
+            POWERCONSUL.LOG.info('Clustered service [{0}]: active[{1}]/standby[{2}] nodes'.format(
+                service, ','.join(activeNodes), ','.join(standbyNodes)
+            ))
 
             """ NODE == ACTIVE """
             if localNode in activeNodes:
