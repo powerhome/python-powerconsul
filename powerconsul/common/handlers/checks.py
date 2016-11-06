@@ -148,10 +148,10 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
         for serviceActive in POWERCONSUL.API.health.service(consulService, dc=datacenter)[1]:
 
             # Node / environment / role
-            node     = service['Node']
+            node     = serviceActive['Node']
             nodeEnv  = POWERCONSUL.getEnv(hostname=node)
             nodeRole = POWERCONSUL.getRole(hostname=node)
-            checks   = service['Checks'][1]
+            checks   = serviceActive['Checks'][1]
 
             # Node must be in the same environment/role
             if (nodeEnv == POWERCONSUL.ENV) and (nodeRole == POWERCONSUL.ROLE):
