@@ -146,10 +146,9 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
 
         # Get active datacenter services
         for serviceActive in POWERCONSUL.API.health.service(consulService, dc=datacenter)[1]:
-            print serviceActive
-
+            
             # Node / environment / role
-            node     = serviceActive['Node']
+            node     = serviceActive['Node']['Node']
             nodeEnv  = POWERCONSUL.getEnv(hostname=node)
             nodeRole = POWERCONSUL.getRole(hostname=node)
             checks   = serviceActive['Checks'][1]
