@@ -89,12 +89,12 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
         """
         Check if a service is running or not.
         """
-        proc   = Popen(['/usr/bin/env', 'service', service, 'status'], stdout=PIPE)
-        status = proc.communicate()[0]
+        proc        = Popen(['/usr/bin/env', 'service', service, 'status'], stdout=PIPE, stderr=PIPE)
+        status, err = proc.communicate()[0]
 
         # Unrecognized service
         if proc.returncode != 0:
-            POWERCONSUL.die('Unrecognized service: {0}'.format(service))
+            POWERCONSUL.die('Failed to determine status for [{0}]: {1}'.format(service, err.rstrip()))
 
         # Service is running
         for runningStr in ['is running', 'start/running']:
