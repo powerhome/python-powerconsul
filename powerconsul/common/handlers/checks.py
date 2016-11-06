@@ -257,7 +257,7 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
         localDC      = POWERCONSUL.CONFIG['datacenter']
 
         # All services active
-        if not (activeDC and not standbyDC) and not (activeNodes and not standbyNodes):
+        if (activeDC and not standbyDC) and (activeNodes and not standbyNodes):
             POWERCONSUL.LOG.info('Clustered service [{0}]: all active'.format(service))
             self.checkRunning(service, clustered=True)
 
