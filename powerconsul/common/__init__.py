@@ -13,12 +13,12 @@ class Show(object):
     Static methods for writing output and exit codes.
     """
     @staticmethod
-    def passing(self, message):
+    def passing(message):
         stdout.write('{0}\n'.format(message))
         exit(0)
 
     @staticmethod
-    def warning(self, message):
+    def warning(message):
         """
         Show a warning message and exit 1.
         """
@@ -26,7 +26,7 @@ class Show(object):
         exit(1)
 
     @staticmethod
-    def critical(self, message, code=2):
+    def critical(message, code=2):
         """
         Show a critical message and exit 2.
         """
