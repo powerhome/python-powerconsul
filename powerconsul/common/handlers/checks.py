@@ -167,8 +167,8 @@ class Service(object):
         if self.datacenters.local == self.datacenters.standby:
 
             """ ACTIVE_DC == PASSING """
-            if self.activePassing(service, activeDC):
-                self.checkRunning(service, expects=False, clustered=True, active=False)
+            if self.activePassing():
+                self.ensure(expects=False, clustered=True, active=False)
 
             """ ACTIVE_DC == CRITICAL """
             self.ensure(service, expects=True, clustered=True, active=False)
@@ -204,11 +204,11 @@ class Service(object):
         if self.nodes.local in self.nodes.standby:
 
             """ ACTIVE_DC == PASSING """
-            if self.activePassing(service, activeNodes):
-                self.checkRunning(service, expects=False, clustered=True, active=False)
+            if self.activePassing():
+                self.ensure(expects=False, clustered=True, active=False)
 
             """ ACTIVE_DC == CRITICAL """
-            self.ensure(service, expects=True, clustered=True, active=False)
+            self.ensure(expects=True, clustered=True, active=False)
 
     def running(self):
         """
@@ -227,13 +227,13 @@ class Service(object):
                 return True
         return False
 
-    def ensure(self, service, expects=True, clustered=False, active=True):
+    def ensure(self, expects=True, clustered=False, active=True):
         """
         Ensure a specific service state.
         """
         running  = self.running()
         msgAttrs = [
-            'service={0}'.format(service),
+            'service={0}'.format(self.service),
             'running={0}'.format('yes' if running else 'no'),
             'expects={0}'.format('running' if expects else 'stopped'),
             'clustered={0}'.format('yes' if clustered else 'no')
