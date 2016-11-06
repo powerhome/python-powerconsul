@@ -190,6 +190,9 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
             # Node must be in the same environment/role
             if (nodeEnv == POWERCONSUL.ENV) and (nodeRole == POWERCONSUL.ROLE):
                 statusList.append(True if checks['Status'] == 'passing' else False)
+                POWERCONSUL.LOG.info('Discovered cluster node [{0}]: env={1}, role={2}, service={3}, status={4}'.format(
+                    node, nodeEnv, nodeRole, consulservice, checks['Status']
+                ))
 
         # Return the status list
         return statusList
