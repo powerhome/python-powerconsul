@@ -51,6 +51,18 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
             "long": "activedc",
             "help": "The active datacenter for this service.",
             "action": "store"
+        },
+        {
+            "short": "n",
+            "long": "standbynodes",
+            "help": "A list of standby node hostnames: i.e., node1,node2",
+            "action": "store"
+        },
+        {
+            "short": "N",
+            "long": "activenodes",
+            "help": "A list of active node hostnames: i.e., node3,node4",
+            "action": "store"
         }
     ] + OPTIONS
 
@@ -130,7 +142,7 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
                 self.isPassing('SERVICE OK: {0}'.format(', '.join(msgAttrs)))
             self.isCritical('SERVICE CRITICAL: {0}'.format(', '.join(msgAttrs)))
 
-    def activePassing(self, service, datacenter):
+    def activePassing(self, service, objects):
         """
         If the node is a standby, use this to check if the nodes in the active
         datacenter for this service are passing/healthy.
@@ -144,18 +156,38 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
         # Store flag if any active services are passing
         anyPassing = False
 
-        # Get active datacenter services
-        for serviceActive in POWERCONSUL.API.health.service(consulService, dc=datacenter)[1]:
-            
-            # Node / environment / role
-            node     = serviceActive['Node']['Node']
-            nodeEnv  = POWERCONSUL.getEnv(hostname=node)
-            nodeRole = POWERCONSUL.getRole(hostname=node)
-            checks   = serviceActive['Checks'][1]
+        # Objects is a string, assume datacenter
+        if isinstance(objects, str):
+            datacenter = objects
 
-            # Node must be in the same environment/role
-            if (nodeEnv == POWERCONSUL.ENV) and (nodeRole == POWERCONSUL.ROLE):
-                anyPassing = True if checks['Status'] == 'passing' else False
+            # Get active datacenter services
+            for serviceActive in POWERCONSUL.API.health.service(consulService, dc=datacenter)[1]:
+
+                # Node / environment / role
+                node     = serviceActive['Node']['Node']
+                nodeEnv  = POWERCONSUL.getEnv(hostname=node)
+                nodeRole = POWERCONSUL.getRole(hostname=node)
+                checks   = serviceActive['Checks'][1]
+
+                # Node must be in the same environment/role
+                if (nodeEnv == POWERCONSUL.ENV) and (nodeRole == POWERCONSUL.ROLE):
+                    anyPassing = True if checks['Status'] == 'passing' else False
+
+        # Objects is a list, assume nodes
+        if isinstance(objects, list):
+
+            # Get active datacenter services
+            for serviceActive in POWERCONSUL.API.health.service(consulService)[1]:
+
+                # Node / environment / role
+                node     = serviceActive['Node']['Node']
+                nodeEnv  = POWERCONSUL.getEnv(hostname=node)
+                nodeRole = POWERCONSUL.getRole(hostname=node)
+                checks   = serviceActive['Checks'][1]
+
+                # Node must be in the same environment/role
+                if (nodeEnv == POWERCONSUL.ENV) and (nodeRole == POWERCONSUL.ROLE):
+                    anyPassing = True if checks['Status'] == 'passing' else False
 
         # Return the flag that shows in any active services are passing
         return anyPassing
@@ -178,41 +210,85 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
 
         """ CLUSTERED """
 
+        # Active/standby nodes
+        activeNodes  = POWERCONSUL.ARGS.get('activenodes').split(',')
+        standbyNodes = POWERCONSUL.ARGS.get('standbynodes').split(',')
+        localNode    = POWERCONSUL.HOST
+
         # Active/standby datacenters
-        activeDC  = POWERCONSUL.ARGS.get('activedc')
-        standbyDC = POWERCONSUL.ARGS.get('standbydc')
-        localDC   = POWERCONSUL.CONFIG['datacenter']
+        activeDC     = POWERCONSUL.ARGS.get('activedc')
+        standbyDC    = POWERCONSUL.ARGS.get('standbydc')
+        localDC      = POWERCONSUL.CONFIG['datacenter']
 
         # All services active
-        if not activeDC and not standbyDC:
+        if not (activeDC and not standbyDC) and not (activeNodes and not standbyNodes):
             self.checkRunning(service, clustered=True)
 
         """ ACTIVE/STANDBY """
 
-        # Both active/standby datacenters must be set
-        if not activeDC or not standbyDC:
-            POWERCONSUL.die('Must supply both active/standby datacenter(s) if specifying either!')
+        # Active/standby datacenter and node options mutually exclusive
+        if (activeDC or standbyDC) and (activeNodes or standbyNodes):
+            POWERCONSUL.die('Active/standby datacenter and node options are mutually exclusive!')
 
-        # Local server's datacenter must match either active or standby
-        if not localDC in [activeDC, standbyDC]:
-            POWERCONSUL.die('Local server\'s datacenter [{0}] must be either the active [{1}] or standby [{2}] datacenter!'.format(
-                localDC,
-                activeDC,
-                standbyDC
-            ))
+        # Active/standby nodes or datacenters
+        checkDC   = True if (activeDC and standbyDC) else False
+        checkNode = True if (activeNodes and standbyNodes) else False
 
-        """ NODE == ACTIVE """
-        if localDC == activeDC:
+        # Both options must be set for either node or datacenter checks
+        if not checkDC and not checkNode:
+            POWERCONSUL.die('Must supply both active/standby datacenter(s)/node(s) if specifying either!')
 
-            # Active datacenter nodes should always have the service runnnig
-            self.checkRunning(service, clustered=True)
+        """ DATACENTER CHECK """
+        if checkDC:
 
-        """ NODE == STANDBY """
-        if localDC == standbyDC:
+            # Local server's datacenter must match either active or standby
+            if not localDC in [activeDC, standbyDC]:
+                POWERCONSUL.die('Local server\'s datacenter [{0}] must be either the active [{1}] or standby [{2}] datacenter!'.format(
+                    localDC,
+                    activeDC,
+                    standbyDC
+                ))
 
-            """ ACTIVE_DC == PASSING """
-            if self.activePassing(service, activeDC):
-                self.checkRunning(service, expects=False, clustered=True, active=False)
+            """ NODE == ACTIVE """
+            if localDC == activeDC:
 
-            """ ACTIVE_DC == CRITICAL """
-            self.checkRunning(service, expects=True, clustered=True, active=False)
+                # Active datacenter nodes should always have the service runnnig
+                self.checkRunning(service, clustered=True)
+
+            """ NODE == STANDBY """
+            if localDC == standbyDC:
+
+                """ ACTIVE_DC == PASSING """
+                if self.activePassing(service, activeDC):
+                    self.checkRunning(service, expects=False, clustered=True, active=False)
+
+                """ ACTIVE_DC == CRITICAL """
+                self.checkRunning(service, expects=True, clustered=True, active=False)
+
+        """ NODE CHECK """
+        if checkNode:
+            allNodes = activeNodes + standbyNodes
+
+            # Local node must be in either active or standby nodes list
+            if not localNode in allNodes:
+                POWERCONSUL.die('Local node address [{0}] must be in either active {1} or standby {2} node list!'.format(
+                    localNode,
+                    activeNodes,
+                    standbyNodes
+                ))
+
+            """ NODE == ACTIVE """
+            if localNode in activeNodes:
+
+                # Active datacenter nodes should always have the service runnnig
+                self.checkRunning(service, clustered=True)
+
+            """ NODE == STANDBY """
+            if localNode == standbyNodes:
+
+                """ ACTIVE_DC == PASSING """
+                if self.activePassing(service, activeNodes):
+                    self.checkRunning(service, expects=False, clustered=True, active=False)
+
+                """ ACTIVE_DC == CRITICAL """
+                self.checkRunning(service, expects=True, clustered=True, active=False)
