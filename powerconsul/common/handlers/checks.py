@@ -166,6 +166,10 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
         """
         service = POWERCONSUL.ARGS.get('service')
 
+        # Service name required
+        if not service:
+            POWERCONSUL.die('Must specify a service name: powerconsul check service -s <name>')
+
         """ STANDALONE """
 
         # Standalone service
