@@ -31,7 +31,7 @@ class Service(object):
         """
         Require the presence of both active/standby attributes.
         """
-        if not group['active'] or group['standby']:
+        if not group['active'] and not group['standby']:
             return None
 
         if not group['active'] and group['standby']:
