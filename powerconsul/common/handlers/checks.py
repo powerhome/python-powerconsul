@@ -134,6 +134,7 @@ class Service(object):
         # Assume all active in cluster
         if not self.datacenters and not self.nodes:
             self.allActive = True
+        return True
 
     def byDatacenter(self):
         """
