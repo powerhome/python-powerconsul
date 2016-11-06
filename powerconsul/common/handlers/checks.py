@@ -320,7 +320,7 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
                 self.checkRunning(service, clustered=True)
 
             """ NODE == STANDBY """
-            if localNode == standbyNodes:
+            if localNode in standbyNodes:
 
                 """ ACTIVE_DC == PASSING """
                 if self.activePassing(service, activeNodes):
