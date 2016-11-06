@@ -43,7 +43,7 @@ class PowerConsulCommon(object):
         """
         Extract the server role from the hostname.
         """
-        hostname = hostname if hostname else gethostname())
+        hostname = hostname if hostname else gethostname()
         return re.compile(r'(^[^0-9]*)[0-9]*$').sub(r'\g<1>', hostname.replace('{0}-'.format(self.ENV), ''))
 
     def getEnv(self, hostname=False):
