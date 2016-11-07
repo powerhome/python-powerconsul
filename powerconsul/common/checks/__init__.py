@@ -106,7 +106,7 @@ class Check_Base(object):
             self.allActive = True
         return True
 
-    def checkConsul(self, service, datacenters=None, nodes=None):
+    def checkConsul(self, consulService, datacenters=None, nodes=None):
         """
         Check if any Consul services are passing.
         """
@@ -116,12 +116,12 @@ class Check_Base(object):
         # Generate a list of Consul services from the API
         if datacenters:
             for dc in datacenters:
-                dcServices = POWERCONSUL.API.health.service(service, dc=dc)[1]
-                POWERCONSUL.LOG.info('Collecting [{0}] Consul [{1}] services in datacenter: {2}'.format(str(len(dcServices)), service, dc))
+                dcServices = POWERCONSUL.API.health.service(consulService, dc=dc)[1]
+                POWERCONSUL.LOG.info('Collecting [{0}] Consul [{1}] services in datacenter: {2}'.format(str(len(dcServices)), consulService, dc))
                 services = services + dcServices
         else:
-            services = POWERCONSUL.API.health.service(service)[1]
-        POWERCONSUL.LOG.info('Checking against [{0}] Consul [{1}] services'.format(str(len(services)), service))
+            services = POWERCONSUL.API.health.service(consulService)[1]
+        POWERCONSUL.LOG.info('Checking against [{0}] Consul [{1}] services'.format(str(len(services)), consulService))
 
         # Process services
         for service in services:
@@ -141,7 +141,7 @@ class Check_Base(object):
             if (nodeEnv == POWERCONSUL.ENV) and (nodeRole == POWERCONSUL.ROLE):
                 statusList.append(True if checks['Status'] == 'passing' else False)
                 POWERCONSUL.LOG.info('Discovered cluster node [{0}]: env={1}, role={2}, service={3}, status={4}'.format(
-                    node, nodeEnv, nodeRole, service, checks['Status']
+                    node, nodeEnv, nodeRole, consulService, checks['Status']
                 ))
 
         # Return the status list
