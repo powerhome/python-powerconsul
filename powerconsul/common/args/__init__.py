@@ -135,7 +135,7 @@ class PowerConsulArgs(object):
         """
         self.container[k] = v
 
-    def get(self, k, default=None, use_json=False):
+    def get(self, k, default=None, use_json=False, required=False):
         """
         Retrieve an argument passed via the command line.
         """
@@ -143,6 +143,10 @@ class PowerConsulArgs(object):
         # Get the value from argparse
         _raw = self.container.get(k)
         _val = (_raw if _raw else default) if not isinstance(_raw, list) else (_raw[0] if _raw[0] else default)
+
+        # No value and argument required
+        if not _val and required:
+            POWERCONSUL.die(required)
 
         # Return the value
         return _val if not use_json else json_loads(_val)
