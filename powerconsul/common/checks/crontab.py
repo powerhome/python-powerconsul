@@ -49,12 +49,12 @@ class Check_Crontab(Check_Base):
 
         # Crontab should be enabled
         if expects == True:
-            if running:
+            if enabled:
                 POWERCONSUL.SHOW.passing('CRONTAB OK: {0}'.format(', '.join(msgAttrs)))
             POWERCONSUL.SHOW.critical('CRONTAB CRITICAL: {0}'.format(', '.join(msgAttrs)))
 
         # Crontab should be disabled
         if expects == False:
-            if not running:
+            if not enabled:
                 POWERCONSUL.SHOW.passing('CRONTAB OK: {0}'.format(', '.join(msgAttrs)))
             POWERCONSUL.SHOW.critical('CRONTAB CRITICAL: {0}'.format(', '.join(msgAttrs)))
