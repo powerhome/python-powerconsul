@@ -23,8 +23,13 @@ class Check_Crontab(Check_Base):
         """
         Check if a crontab is enabled or not.
         """
-        if path.isfile(self.path.enabled):
+        if path.isfile(self.path['enabled']):
             return True
+
+        # Crontab is disabled, but does not exist in '/var/spool/cron/crontabs.disabled'
+        if not path.isfile(self.path['disabled']):
+            POWERCONSUL.LOG.info('Crontab for [{0}] disabled, but does not exist in: /var/spool/cron/crontabs.disabled'.format(self.name))
+        return False
 
     def ensure(self, expects=True, clustered=False, active=True):
         """
