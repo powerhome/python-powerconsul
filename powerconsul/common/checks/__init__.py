@@ -13,13 +13,24 @@ class Check_Base(object):
         """
         Require the presence of both active/standby attributes.
         """
+
+        # Cluster group mapping
+        class Group(object):
+            def __init__(self, **kwargs):
+                for k,v in kwargs.iteritems():
+                    setattr(self, k, v)
+
+        # Group is disabled
         if not group['active'] and not group['standby']:
-            return group
-        group['enabled'] = True
+            return Group(**group)
 
         # Active/standby attributes required if either are set
         if not group['active'] or not group['standby']:
             POWERCONSUL.die('Must specify both active/standby {0} attributes'.format(label))
+
+        # Enabled group
+        group = Group(**group)
+        group.enabled = True
         return group
 
     def setCluster(self, state):
@@ -56,10 +67,10 @@ class Check_Base(object):
 
             # Supplied datacenters must be valid
             for dcType in ['active', 'standby', 'local']:
-                if not self.datacenters[dcType] in self.datacenters.all:
+                if not getattr(self.datacenters, dcType) in self.datacenters.all:
                     POWERCONSUL.die('{0} datacenter [{1}] not valid, available datacenters: {1}'.format(
                         dcType.capitalize(),
-                        self.datacenters[dcType],
+                        getattr(self.datacenters, dcType),
                         self.datacenters.all
                     ))
 
