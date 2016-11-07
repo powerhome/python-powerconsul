@@ -5,6 +5,7 @@ from json import loads as json_loads
 from argparse import ArgumentParser, RawTextHelpFormatter
 
 # PowerConsul Libraries
+from powerconsul import __version__
 from powerconsul.common.handlers import PowerConsulHandlers
 from powerconsul.common.args.options import OPTIONS
 
@@ -26,7 +27,7 @@ class PowerConsulArgs_Base(object):
 
     # Description
     desc       = {
-        "title": "Power Consul",
+        "title": "Power Consul v{0}".format(__version__),
         "summary": "Command line tools for managing Power Consul HA services.",
         "usage": "\n> powerconsul [command] [subcommand] [options]\n> powerconsul help [target]"
     }
