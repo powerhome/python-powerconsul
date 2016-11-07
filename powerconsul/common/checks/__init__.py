@@ -118,7 +118,7 @@ class Check_Base(object):
             for dc in datacenters:
                 dcServices = POWERCONSUL.API.health.service(service, dc=dc)[1]
                 POWERCONSUL.LOG.info('Collecting [{0}] Consul [{1}] services in datacenter: {2}'.format(str(len(dcServices)), service, dc))
-                services + dcServices
+                services = services + dcServices
         else:
             services = POWERCONSUL.API.health.service(service)[1]
         POWERCONSUL.LOG.info('Checking against [{0}] Consul [{1}] services'.format(str(len(services)), service))
