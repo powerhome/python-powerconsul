@@ -6,6 +6,7 @@ from subprocess import Popen, PIPE
 from powerconsul.common.args.options import OPTIONS
 from powerconsul.common.handlers.base import PowerConsulHandler_Base
 from powerconsul.common.checks.service import Check_Service
+from powerconsul.common.checks.crontab import Check_Crontab
 
 class PowerConsulHandler_Checks(PowerConsulHandler_Base):
     """
