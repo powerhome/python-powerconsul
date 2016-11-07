@@ -5,7 +5,7 @@ from subprocess import Popen, PIPE
 # Power Consul modules
 from powerconsul.common.args.options import OPTIONS
 from powerconsul.common.handlers.base import PowerConsulHandler_Base
-from powerconsul.common.checks import Check_Service
+from powerconsul.common.checks.service import Check_Service
 
 class PowerConsulHandler_Checks(PowerConsulHandler_Base):
     """
