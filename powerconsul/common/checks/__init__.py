@@ -162,7 +162,7 @@ class Check_Base(object):
 
         # By nodes
         if nodes:
-            for status in self.checkConsul(consulService, datacenters=self.datacenters.all, nodes=objects):
+            for status in self.checkConsul(consulService, datacenters=self.datacenters.all, nodes=nodes):
                 if anyPassing:
                     continue
                 anyPassing = status
