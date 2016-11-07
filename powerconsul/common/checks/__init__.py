@@ -9,6 +9,11 @@ class Check_Base(object):
         self.clustered   = self.setCluster(POWERCONSUL.ARGS.get('clustered'))
         self.filterStr   = ''
 
+    def mapList(self, listStr):
+        if not listStr:
+            return None
+        return listStr.split(',')
+
     def setGroup(self, group, label):
         """
         Require the presence of both active/standby attributes.
@@ -42,8 +47,8 @@ class Check_Base(object):
 
         # Cluster by node
         self.nodes   = self.setGroup({
-            'active': POWERCONSUL.ARGS.get('activenodes', default='').split(','),
-            'standby': POWERCONSUL.ARGS.get('standbynodes', default='').split(','),
+            'active': self.mapList(POWERCONSUL.ARGS.get('activenodes')),
+            'standby': self.mapList(POWERCONSUL.ARGS.get('standbynodes')),
             'local': POWERCONSUL.HOST,
             'enabled': False
         }, 'nodes')
