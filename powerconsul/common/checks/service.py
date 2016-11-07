@@ -85,7 +85,7 @@ class Check_Service(Check_Base):
                 self.ensure(expects=False, clustered=True, active=False)
 
             # Active nodes critical
-            self.ensure(service, expects=True, clustered=True, active=False)
+            self.ensure(expects=True, clustered=True, active=False)
 
     def byNodes(self):
         """
@@ -103,7 +103,7 @@ class Check_Service(Check_Base):
 
         # Node is active
         if self.nodes.local in self.nodes.active:
-            self.ensure(service, clustered=True)
+            self.ensure(clustered=True)
 
         # Node is standby
         if self.nodes.local in self.nodes.standby:
