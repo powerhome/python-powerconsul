@@ -10,8 +10,7 @@ class Check_Service(Check_Base):
         super(Check_Service, self).__init__('service')
 
         # Service attributes
-        self.name        = POWERCONSUL.ARGS.get('service', required='Local service name required: powerconsul check service -s <name>')
-        self.consulName  = POWERCONSUL.ARGS.get('consulservice')
+        self.name = POWERCONSUL.ARGS.get('service', required='Local service name required: powerconsul check service -s <name>')
 
     def running(self):
         """
@@ -57,60 +56,3 @@ class Check_Service(Check_Base):
             if not running:
                 POWERCONSUL.SHOW.passing('SERVICE OK: {0}'.format(', '.join(msgAttrs)))
             POWERCONSUL.SHOW.critical('SERVICE CRITICAL: {0}'.format(', '.join(msgAttrs)))
-
-    def byDatacenter(self):
-        """
-        Ensure a clustered service state by datacenter.
-        """
-        if not self.datacenters.enabled:
-            return None
-
-        # Log the service check
-        POWERCONSUL.LOG.info('Clustered service [{0}@{1}]: active[{2}]/standby[{3}] datacenters'.format(
-            self.name,
-            self.datacenters.local,
-            self.datacenters.active,
-            self.datacenters.standby
-        ))
-
-        # Node is active
-        if self.datacenters.local == self.datacenters.active:
-            self.ensure(service, clustered=True)
-
-        # Node is standby
-        if self.datacenters.local == self.datacenters.standby:
-
-            # Active nodes healthy/passing
-            if self.activePassing(datacenters=[self.datacenters.active]):
-                self.ensure(expects=False, clustered=True, active=False)
-
-            # Active nodes critical
-            self.ensure(expects=True, clustered=True, active=False)
-
-    def byNodes(self):
-        """
-        Ensure a clustered service state by nodes.
-        """
-        if not self.nodes:
-            return False
-
-        # Log the service check
-        POWERCONSUL.LOG.info('Clustered service [{0}]: active[{1}]/standby[{2}] nodes'.format(
-            self.name,
-            ','.join(self.nodes.active),
-            ','.join(self.nodes.standby)
-        ))
-
-        # Node is active
-        if self.nodes.local in self.nodes.active:
-            self.ensure(clustered=True)
-
-        # Node is standby
-        if self.nodes.local in self.nodes.standby:
-
-            # Active nodes healthy/passing
-            if self.activePassing(nodes=self.nodes.active):
-                self.ensure(expects=False, clustered=True, active=False)
-
-            # Active nodes critical
-            self.ensure(expects=True, clustered=True, active=False)
