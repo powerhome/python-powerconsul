@@ -156,6 +156,7 @@ class Check_Base(object):
 
         # By datacenter
         if datacenters:
+            POWERCONSUL.LOG.info('Looking for healthy/passing active [{0}] services by: datacenters={1}'.format(consulService, json.dumps(datacenters)))
             for status in self.checkConsul(consulService, datacenters=datacenters):
                 if anyPassing:
                     continue
@@ -163,10 +164,12 @@ class Check_Base(object):
 
         # By nodes
         if nodes:
+            POWERCONSUL.LOG.info('Looking for healthy/passing active [{0}] services by: nodes={1}'.format(consulService, json.dumps(nodes)))
             for status in self.checkConsul(consulService, datacenters=self.datacenters.all, nodes=nodes):
                 if anyPassing:
                     continue
                 anyPassing = status
 
         # Return the flag that shows in any active services are passing
+        POWERCONSUL.LOG.info('Healthy/passing active services: {0}'.format(anyPassing))
         return anyPassing
