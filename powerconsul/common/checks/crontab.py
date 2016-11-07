@@ -15,8 +15,8 @@ class Check_Crontab(Check_Base):
 
         # Crontab paths
         self.path = {
-            'enabled': '/var/spool/cron/crontabs/{0}'.format(self.user),
-            'disabled': '/var/spool/cron/crontabs.disabled/{0}'.format(self.user)
+            'enabled': '/var/spool/cron/crontabs/{0}'.format(self.name),
+            'disabled': '/var/spool/cron/crontabs.disabled/{0}'.format(self.name)
         }
 
     def enabled(self):
@@ -32,7 +32,7 @@ class Check_Crontab(Check_Base):
         """
         enabled  = self.enabled()
         msgAttrs = [
-            'user={0}'.format(self.user),
+            'user={0}'.format(self.name),
             'enabled={0}'.format('yes' if enabled else 'no'),
             'expects={0}'.format('enabled' if expects else 'disabled'),
             'clustered={0}'.format('yes' if clustered else 'no')
