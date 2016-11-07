@@ -8,7 +8,7 @@ class Check_Crontab(Check_Base):
     Class object representing a crontab check.
     """
     def __init__(self):
-        super(Check_Service, self).__init__('crontab')
+        super(Check_Crontab, self).__init__('crontab')
 
         # Crontab attributes
         self.name = POWERCONSUL.ARGS.get('user', required='Local user name required: powerconsul check crontab -u <username>')
