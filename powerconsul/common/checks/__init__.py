@@ -73,7 +73,7 @@ class Check_Base(object):
             # Supplied datacenters must be valid
             for dcType in ['active', 'standby', 'local']:
                 if not getattr(self.datacenters, dcType) in self.datacenters.all:
-                    POWERCONSUL.die('{0} datacenter [{1}] not valid, available datacenters: {1}'.format(
+                    POWERCONSUL.die('{0} datacenter [{1}] not valid, available datacenters: {2}'.format(
                         dcType.capitalize(),
                         getattr(self.datacenters, dcType),
                         self.datacenters.all
