@@ -116,9 +116,11 @@ class Check_Base(object):
         # Generate a list of Consul services from the API
         if datacenters:
             for dc in datacenters:
+                POWERCONSUL.LOG.info('Collecting [{0}] Consul services in datacenter: {1}'.format(service, dc))
                 services + POWERCONSUL.API.health.service(service, dc=dc)[1]
         else:
             services = POWERCONSUL.API.health.service(service)[1]
+        POWERCONSUL.LOG.info('Checking against [{0}] Consul [{1}] services'.format(str(len(services)), service))
 
         # Process services
         for service in services:
