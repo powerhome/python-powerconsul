@@ -1,3 +1,5 @@
+import json
+
 class Check_Base(object):
     """
     Base class for a checked resource.
@@ -76,7 +78,7 @@ class Check_Base(object):
                     POWERCONSUL.die('{0} datacenter [{1}] not valid, available datacenters: {2}'.format(
                         dcType.capitalize(),
                         getattr(self.datacenters, dcType),
-                        self.datacenters.all
+                        json.dumps(self.datacenters.all)
                     ))
 
             # Local server's datacenter must match either active or standby
@@ -95,8 +97,8 @@ class Check_Base(object):
             if not self.nodes.local in (self.nodes.active + self.nodes.standby):
                 POWERCONSUL.die('Local node address [{0}] must be in either active {1} or standby {2} node list!'.format(
                     self.nodes.local,
-                    self.nodes.active,
-                    self.nodes.standby
+                    json.dumps(self.nodes.active),
+                    json.dumps(self.nodes.standby)
                 ))
 
         # Assume all active in cluster
