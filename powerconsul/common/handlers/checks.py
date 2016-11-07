@@ -64,6 +64,12 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
             "long": "activenodes",
             "help": "A list of active node hostnames: i.e., node3,node4",
             "action": "store"
+        },
+        {
+            "short": "u",
+            "long": "user",
+            "help": "A local user account for supported checks.",
+            "action": "store"
         }
     ] + OPTIONS
 
@@ -71,11 +77,34 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
     commands = {
         "service": {
             "help": "Check a service running on the system."
+        },
+        "crontab": {
+            "help": "Check a user's crontab on the system."
         }
     }
 
     def __init__(self):
         super(PowerConsulHandler_Checks, self).__init__(self.id)
+
+    def crontab(self):
+        """
+        Check the crontab for a user.
+        """
+        crontab = Check_Crontab()
+
+        """ STANDALONE """
+        if not crontab.clustered:
+            crontab.ensure()
+
+        """ CLUSTERED """
+
+        # All services active
+        if crontab.allActive:
+            crontab.ensure(clustered=True)
+
+        """ ACTIVE/STANDBY """
+        crontab.byDatacenter()
+        crontab.byNodes()
 
     def service(self):
         """

@@ -7,7 +7,7 @@ class Check_Service(Check_Base):
     Class object representing a service check.
     """
     def __init__(self):
-        super(Check_Service, self).__init__()
+        super(Check_Service, self).__init__('service')
 
         # Service attributes
         self.name        = POWERCONSUL.ARGS.get('service', required='Local service name required: powerconsul check service -s <name>')
