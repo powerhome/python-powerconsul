@@ -131,6 +131,7 @@ class Check_Base(object):
 
             # If provided a node filter list
             if nodes and not node in nodes:
+                POWERCONSUL.LOG.info('checkConsul -> skipping: {0}'.format(node))
                 continue
 
             # Node must be in the same environment/role
