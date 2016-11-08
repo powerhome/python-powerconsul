@@ -68,6 +68,7 @@ class Check_Crontab(Check_Base):
                     'expects': expects,
                     'clustered': clustered
                 })
+                self.dns(True)
             POWERCONSUL.SHOW.critical({
                 'type': 'crontab',
                 'crontab': self.name,
@@ -85,6 +86,7 @@ class Check_Crontab(Check_Base):
                     'expects': expects,
                     'clustered': clustered
                 })
+                self.dns(False)
             POWERCONSUL.SHOW.critical({
                 'type': 'crontab',
                 'crontab': self.name,

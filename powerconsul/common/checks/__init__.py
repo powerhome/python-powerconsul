@@ -20,6 +20,20 @@ class Check_Base(object):
         # Resource name
         self.name        = None
 
+    def dns(self, state):
+        """
+        Disable/enable this service in a DNS prepared query via tags.
+        """
+        for srvObj in POWERCONSUL.API.agent.services():
+            POWERCONSUL.LOG.info(srvObj)
+
+        # Enable DNS
+        if state:
+            return True
+        # Disable DNS
+        else:
+            return False
+
     def setGroup(self, group, label):
         """
         Require the presence of both active/standby attributes.
