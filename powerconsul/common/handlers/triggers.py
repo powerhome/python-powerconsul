@@ -1,5 +1,8 @@
 import re
+import os
+import stat
 import json
+from uuid import uuid4
 from subprocess import Popen, PIPE
 
 # Power Consul modules
@@ -74,6 +77,25 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
             except Exception as e:
                 return POWERCONSUL.LOG.error('Failed to run @{0}({1}): {2}'.format(methodName, methodArgs, str(e)))
             POWERCONSUL.LOG.info('Successfully ran @{0}({1})'.format(methodName, methodArgs))
+
+        # Trigger is a script
+        elif action.startswith('#!/bin/bash') or action.startswith('#!/bin/sh'):
+            filename = '/tmp/trigger_{0}.sh'.format(str(uuid4()))
+            with open(filename, 'w') as f:
+                f.write(action)
+            os.chmod(filename, os.stat(filename).st_mode | stat.S_IEXEC)
+
+            # Run the script
+            proc = Popen([filename], stdout=PIPE, stderr=PIPE)
+            out, err = proc.communicate()
+
+            # Command failed
+            if proc.returncode != 0:
+                return POWERCONSUL.LOG.error('Failed to run [{0}]: {1}'.format(filename, str(err).rstrip()))
+            POWERCONSUL.LOG.info('Successfully ran [{0}]: {1}'.format(filename, str(out).rstrip()))
+
+            # Remove the temp file
+            os.remove(filename)
 
         # Assume a shell command
         else:
