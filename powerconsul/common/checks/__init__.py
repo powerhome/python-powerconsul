@@ -38,7 +38,7 @@ class Check_Base(object):
                     serviceObj['Tags'].append('nodns')
 
             # Re-register the service
-            POWERCONSUL.API.service.register(self.service,
+            POWERCONSUL.API.agent.service.register(self.service,
                 service_id = serviceObj['ID'],
                 address    = serviceObj['Address'],
                 port       = serviceObj['Port'],
