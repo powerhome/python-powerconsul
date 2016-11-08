@@ -66,7 +66,7 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
 
             # Run the action
             try:
-                methodObj(**json.loads(methodArgs))
+                methodObj(**POWERCONSUL.ACTIONS.parseArgs(methodArgs))
             except Exception as e:
                 return POWERCONSUL.LOG.error('Failed to run @{0}({1}): {2}'.format(methodName, methodArgs, str(e)))
             POWERCONSUL.LOG.info('Successfully ran @{0}({1})'.format(methodName, methodArgs))
