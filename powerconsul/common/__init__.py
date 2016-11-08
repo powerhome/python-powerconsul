@@ -8,6 +8,9 @@ from traceback import print_exc
 from importlib import import_module
 from sys import stderr, exit, exc_info, stdout
 
+# Power Consul actions
+from powerconsul.common.actions import PowerConsul_Actions
+
 class Show(object):
     """
     Static methods for writing output and exit codes.
@@ -74,6 +77,7 @@ class PowerConsulCommon(object):
         self.API      = Consul()
         self.CONFIG   = self._get_config()
         self.SHOW     = Show
+        self.ACTIONS  = PowerConsul_Actions
 
         # PowerHRG environment
         self.ENV      = self.getEnv()

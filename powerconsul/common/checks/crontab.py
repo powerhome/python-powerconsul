@@ -62,11 +62,33 @@ class Check_Crontab(Check_Base):
         # Crontab should be enabled
         if expects == True:
             if enabled:
-                POWERCONSUL.SHOW.passing('CRONTAB OK: {0}'.format(', '.join(msgAttrs)))
-            POWERCONSUL.SHOW.critical('CRONTAB CRITICAL: {0}'.format(', '.join(msgAttrs)))
+                POWERCONSUL.SHOW.passing({
+                    'type': 'crontab',
+                    'crontab': self.name,
+                    'expects': expects,
+                    'clustered': clustered
+                })
+            POWERCONSUL.SHOW.critical({
+                'type': 'crontab',
+                'crontab': self.name,
+                'action': '@enableCrontab { "user": "{0}"}'.format(self.name),
+                'expects': expects,
+                'clustered': clustered
+            })
 
         # Crontab should be disabled
         if expects == False:
             if not enabled:
-                POWERCONSUL.SHOW.passing('CRONTAB OK: {0}'.format(', '.join(msgAttrs)))
-            POWERCONSUL.SHOW.critical('CRONTAB CRITICAL: {0}'.format(', '.join(msgAttrs)))
+                POWERCONSUL.SHOW.passing({
+                    'type': 'crontab',
+                    'crontab': self.name,
+                    'expects': expects,
+                    'clustered': clustered
+                })
+            POWERCONSUL.SHOW.critical({
+                'type': 'crontab',
+                'crontab': self.name,
+                'action': '@disableCrontab { "user": "{0}"}'.format(self.name),
+                'expects': expects,
+                'clustered': clustered
+            })

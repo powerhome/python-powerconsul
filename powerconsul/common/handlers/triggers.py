@@ -1,3 +1,4 @@
+import re
 import json
 from subprocess import Popen, PIPE
 
@@ -56,13 +57,31 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
         """
         Run the state action.
         """
-        proc = Popen(action.split(' '), stdout=PIPE, stderr=PIPE)
-        out, err = proc.communicate()
 
-        # Command failed
-        if proc.returncode != 0:
-            return POWERCONSUL.LOG.error('Failed to run [{0}]: {1}'.format(action, str(err).rstrip()))
-        POWERCONSUL.LOG.info('Successfully ran [{0}]: {1}'.format(action, str(out).rstrip()))
+        # Trigger method reference
+        if action.startswith('@'):
+            methodName = re.compile(r'^@([^ ]*)[ ].*$').sub(r'\g<1>', action)
+            methodArgs = re.compile(r'^@[^ ]*[ ](.*$)').sub(r'\g<1>', action)
+            methodObj  = POWERCONSUL.ACTIONS.get(methodName)
+
+            # Run the action
+            try:
+                methodObj(**json.loads(methodArgs))
+            except Exception as e:
+                return POWERCONSUL.LOG.error('Failed to run @{0}({1}): {2}'.format(methodName, methodArgs, str(e)))
+            POWERCONSUL.LOG.info('Successfully ran @{0}({1})'.format(methodName, methodArgs))
+
+        # Assume a shell command
+        else:
+
+            # Assume action is a shell command
+            proc = Popen(action.split(' '), stdout=PIPE, stderr=PIPE)
+            out, err = proc.communicate()
+
+            # Command failed
+            if proc.returncode != 0:
+                return POWERCONSUL.LOG.error('Failed to run [{0}]: {1}'.format(action, str(err).rstrip()))
+            POWERCONSUL.LOG.info('Successfully ran [{0}]: {1}'.format(action, str(out).rstrip()))
 
     def _get_action(self, state):
         """
