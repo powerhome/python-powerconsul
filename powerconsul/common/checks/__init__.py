@@ -59,6 +59,7 @@ class Check_Base(object):
         if not data:
             POWERCONSUL.LOG.info('No cluster attributes found, assuming standalone node.')
             return False
+        POWERCONSUL.LOG.info('Discovered service [{0}] cluster attributes: {1}'.format(self.service, data['Value']))
 
         # Parse out cluster information
         try:
