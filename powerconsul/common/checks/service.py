@@ -34,25 +34,37 @@ class Check_Service(Check_Base):
         Ensure a specific service state.
         """
         running  = self.running()
-        msgAttrs = [
-            'service={0}'.format(self.name),
-            'running={0}'.format('yes' if running else 'no'),
-            'expects={0}'.format('running' if expects else 'stopped'),
-            'clustered={0}'.format('yes' if clustered else 'no')
-        ]
-
-        # If running in a cluster, append datacenter attribute to message
-        if clustered:
-            msgAttrs.append('active{0}={1}'.format(self.filterStr, 'yes' if active else 'no'))
 
         # Service should be running
         if expects == True:
             if running:
-                POWERCONSUL.SHOW.passing('SERVICE OK: {0}'.format(', '.join(msgAttrs)))
-            POWERCONSUL.SHOW.critical('SERVICE CRITICAL: {0}'.format(', '.join(msgAttrs)))
+                POWERCONSUL.SHOW.passing({
+                    'type': 'service',
+                    'service': self.name,
+                    'expects': expects,
+                    'clustered': clustered
+                })
+            POWERCONSUL.SHOW.critical({
+                'type': 'service',
+                'service': self.name,
+                'action': '/usr/bin/env service {0} start'.format(self.name),
+                'expects': expects,
+                'clustered': clustered
+            })
 
         # Service should be stopped
         if expects == False:
             if not running:
-                POWERCONSUL.SHOW.passing('SERVICE OK: {0}'.format(', '.join(msgAttrs)))
-            POWERCONSUL.SHOW.critical('SERVICE CRITICAL: {0}'.format(', '.join(msgAttrs)))
+                POWERCONSUL.SHOW.passing({
+                    'type': 'service',
+                    'service': self.name,
+                    'expects': expects,
+                    'clustered': clustered
+                })
+            POWERCONSUL.SHOW.critical({
+                'type': 'service',
+                'service': self.name,
+                'action': '/usr/bin/env service {0} start'.format(self.name),
+                'expects': expects,
+                'clustered': clustered
+            })

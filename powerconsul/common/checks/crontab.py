@@ -1,6 +1,9 @@
-from os import path
+from pwd import getpwuid
+from grp import getgrgid
+from os import path, stat
 from subprocess import Popen, PIPE
 
+# Power Consul modules
 from powerconsul.common.checks import Check_Base
 
 class Check_Crontab(Check_Base):
@@ -24,6 +27,15 @@ class Check_Crontab(Check_Base):
         Check if a crontab is enabled or not.
         """
         if path.isfile(self.path['enabled']):
+            cron_stat  = stat(self.path['enabled'])
+
+            # Check ownership on crontab
+            cron_owner = getpwuid(cron_stat.st_uid)[0]
+            cron_group = getgrgid(cron_stat.st_gid)[0]
+
+            # Should be <user>/root
+            if not (cron_owner == self.name) or not (cron_group == 'root'):
+                POWERCONSUL.SHOW.warning('Incorrect permissions "{0}:{1}" for <{2}> crontab, expected "{3}:root"'.format(cron_owner, cron_group, self.name, self.name))
             return True
 
         # Crontab is disabled, but does not exist in '/var/spool/cron/crontabs.disabled'

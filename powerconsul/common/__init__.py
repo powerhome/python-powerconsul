@@ -14,7 +14,16 @@ class Show(object):
     """
     @staticmethod
     def passing(message):
-        stdout.write('{0}\n'.format(message))
+        try:
+            message['state'] = 'passing'
+            message['code']  = 0
+
+            if not 'action' in message:
+                message['action'] = '/usr/bin/env true'
+
+            stdout.write('{0}\n'.format(json.dumps(message)))
+        except:
+            stdout.write('{0}\n'.format(message))
         exit(0)
 
     @staticmethod
@@ -22,7 +31,16 @@ class Show(object):
         """
         Show a warning message and exit 1.
         """
-        stdout.write('{0}\n'.format(message))
+        try:
+            message['state'] = 'warning'
+            message['code']  = 1
+
+            if not 'action' in message:
+                message['action'] = '/usr/bin/env true'
+
+            stdout.write('{0}\n'.format(json.dumps(message)))
+        except:
+            stdout.write('{0}\n'.format(message))
         exit(1)
 
     @staticmethod
@@ -30,7 +48,16 @@ class Show(object):
         """
         Show a critical message and exit 2.
         """
-        stdout.write('{0}\n'.format(message))
+        try:
+            message['state'] = 'critical'
+            message['code']  = code
+
+            if not 'action' in message:
+                message['action'] = '/usr/bin/env true'
+
+            stdout.write('{0}\n'.format(json.dumps(message)))
+        except:
+            stdout.write('{0}\n'.format(message))
         exit(code)
 
 class PowerConsulCommon(object):
