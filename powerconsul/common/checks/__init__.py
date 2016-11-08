@@ -69,16 +69,16 @@ class Check_Base(object):
 
         # Cluster by node
         self.nodes   = self.setGroup({
-            'active': self.mapList(clusterAttrs.get('active_nodes', default=None)),
-            'standby': self.mapList(clusterAttrs.get('standby_nodes', default=None)),
+            'active': self.mapList(clusterAttrs.get('active_nodes')),
+            'standby': self.mapList(clusterAttrs.get('standby_nodes')),
             'local': POWERCONSUL.HOST,
             'enabled': False
         }, 'nodes')
 
         # Cluster by datacenter
         self.datacenters = self.setGroup({
-            'active': clusterAttrs.get('active_datacenter', default=None),
-            'standby': clusterAttrs.get('standby_datacenter', default=None),
+            'active': clusterAttrs.get('active_datacenter'),
+            'standby': clusterAttrs.get('standby_datacenter'),
             'local': POWERCONSUL.CONFIG['datacenter'],
             'all': POWERCONSUL.API.catalog.datacenters(),
             'enabled': False
