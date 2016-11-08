@@ -9,11 +9,13 @@ class Check_Base(object):
         self.datacenters = None
         self.nodes       = None
         self.allActive   = False
-        self.clustered   = self.setCluster()
         self.filterStr   = ''
 
         # The Consul service name
         self.service     = POWERCONSUL.ARGS.get('consulservice', required='Must supply a Consul servicename: powerconsul check <resource> -S <serviceName>')
+
+        # Cluster attributes
+        self.clustered   = self.setCluster()
 
         # Resource name
         self.name        = None
