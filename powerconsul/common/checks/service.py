@@ -64,7 +64,7 @@ class Check_Service(Check_Base):
             POWERCONSUL.SHOW.critical({
                 'type': 'service',
                 'service': self.name,
-                'action': '/usr/bin/env service {0} start'.format(self.name),
+                'action': '/usr/bin/env service {0} stop'.format(self.name),
                 'expects': expects,
                 'clustered': clustered
             })

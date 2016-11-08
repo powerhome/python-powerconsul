@@ -64,11 +64,22 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
             return POWERCONSUL.LOG.error('Failed to run [{0}]: {1}'.format(action, str(err).rstrip()))
         POWERCONSUL.LOG.info('Successfully ran [{0}]: {1}'.format(action, str(out).rstrip()))
 
-    def _get_action(self, service, state):
+    def _get_action(self, state):
         """
         Retrieve an action for a service state trigger.
         """
-        index, data = POWERCONSUL.API.kv.get('triggers/{0}/{1}'.format(service, state))
+
+        # See if output is JSON
+        try:
+            POWERCONSUL.LOG.info('Parse service output: [{0}]'.format(str(self.serviceJSON['Output'])))
+            if isinstance(self.serviceJSON['Output'], dict):
+                return self.serviceJSON['Output']['action']
+            return json.loads(self.serviceJSON['Output'])['action']
+        except:
+            POWERCONSUL.LOG.info('No JSON in service output, attempting KV lookup...')
+
+        # Get from Consul KV store as a fallback
+        index, data = POWERCONSUL.API.kv.get('triggers/{0}/{1}'.format(self.serviceName, state))
 
         # No action found
         if not data:
@@ -83,7 +94,7 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
         """
 
         # Action to run
-        action = self._get_action(self.serviceName, 'critical')
+        action = self._get_action('critical')
         POWERCONSUL.LOG.info('state=critical, service={0}, action={1}'.format(self.serviceName, action))
 
         # Run the action
@@ -95,7 +106,7 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
         """
 
         # Action to run
-        action = self._get_action(self.serviceName, 'warning')
+        action = self._get_action('warning')
         POWERCONSUL.LOG.info('state=warning, service={0}, action={1}'.format(self.serviceName, action))
 
         # Run the action
