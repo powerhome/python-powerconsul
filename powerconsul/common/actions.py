@@ -1,4 +1,6 @@
-from os import rename, path, makedirs
+from pwd import getpwnam
+from grp import getgrnam
+from os import rename, path, makedirs, chown
 
 CRONTABS = '/var/spool/cron/crontabs'
 CRONTABS_DISABLED = '/var/spool/cron/crontabs.disabled'
@@ -17,8 +19,9 @@ class PowerConsul_Actions(object):
         if not path.isfile(cronPath):
             raise Exception("Cannot enable crontab for user [{0}]: file not found: {1}".format(cronUser, cronPath))
 
-        # Enable the crontab
+        # Enable the crontab and set permissions
         rename(cronPath, cronEnabled)
+        chown(cronEnabled, getpwnam(cronUser).pw_uid, getgrnam('crontab').gr_gid)
         POWERCONSUL.LOG.info('Enabled crontab for user: {0}'.format(cronUser))
 
     @classmethod
@@ -35,8 +38,9 @@ class PowerConsul_Actions(object):
         if not path.isfile(cronPath):
             raise Exception("Cannot disable crontab for user [{0}]: file not found: {1}".format(cronUser, cronPath))
 
-        # Enable the crontab
+        # Disable the crontab
         rename(cronPath, cronDisabled)
+        chown(cronDisabled, getpwnam(cronUser).pw_uid, getgrnam('crontab').gr_gid)
         POWERCONSUL.LOG.info('Disabled crontab for user: {0}'.format(cronUser))
 
     @classmethod
