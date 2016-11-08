@@ -43,7 +43,7 @@ class Check_Base(object):
                 address    = serviceObj['Address'],
                 port       = serviceObj['Port'],
                 tags       = serviceObj['Tags'],
-                check      = json.loads(open('/etc/consul/service_{0}.json'.format(self.service)).read())['checks']
+                check      = json.loads(open('/etc/consul/service_{0}.json'.format(self.service)).read())['service']['checks']
             )
         except Exception as e:
             POWERCONSUL.LOG.error('Failed to update DNS tag: {0}'.format(str(e)))
