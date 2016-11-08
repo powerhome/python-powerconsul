@@ -34,7 +34,7 @@ class Check_Base(object):
 
             # Disable DNS
             else:
-                if not 'nodns' in serviceObj:
+                if not 'nodns' in serviceObj['Tags']:
                     serviceObj['Tags'].append('nodns')
             POWERCONSUL.LOG.info('Setting DNS state for [{0}] service: enabled={1}'.format(self.service, state))
 
