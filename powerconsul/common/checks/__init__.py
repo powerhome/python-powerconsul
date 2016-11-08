@@ -29,7 +29,8 @@ class Check_Base(object):
 
             # Enable DNS
             if state:
-                serviceObj['Tags'].remove('nodns')
+                if 'nodns' in serviceObj['Tags']:
+                    serviceObj['Tags'].remove('nodns')
 
             # Disable DNS
             else:
