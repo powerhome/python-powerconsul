@@ -48,16 +48,6 @@ class Check_Crontab(Check_Base):
         Ensure a specific crontab state.
         """
         enabled  = self.enabled()
-        msgAttrs = [
-            'user={0}'.format(self.name),
-            'enabled={0}'.format('yes' if enabled else 'no'),
-            'expects={0}'.format('enabled' if expects else 'disabled'),
-            'clustered={0}'.format('yes' if clustered else 'no')
-        ]
-
-        # If running in a cluster, append datacenter attribute to message
-        if clustered:
-            msgAttrs.append('active{0}={1}'.format(self.filterStr, 'yes' if active else 'no'))
 
         # Crontab should be enabled
         if expects == True:
