@@ -24,8 +24,7 @@ class Check_Base(object):
         """
         Disable/enable this service in a DNS prepared query via tags.
         """
-        for srvObj in POWERCONSUL.API.agent.services():
-            POWERCONSUL.LOG.info(srvObj)
+        POWERCONSUL.LOG.info(POWERCONSUL.API.agent.services())
 
         # Enable DNS
         if state:
