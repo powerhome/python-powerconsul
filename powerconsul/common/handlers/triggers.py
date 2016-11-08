@@ -49,6 +49,10 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
     def __init__(self):
         super(PowerConsulHandler_Triggers, self).__init__(self.id)
 
+        # Service argument required
+        if not POWERCONSUL.ARGS.get('service'):
+            POWERCONSUL.die("Must supply a service JSON object: powerconsul trigger <state> -s <serviceJSON>")
+
         # Service attributes
         self.serviceJSON = json.loads(POWERCONSUL.ARGS.get('service'))
         self.serviceName = self.serviceJSON['ServiceName']
