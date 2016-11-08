@@ -20,11 +20,6 @@ class Check_Base(object):
         # Resource name
         self.name        = None
 
-    def mapList(self, listStr):
-        if not listStr:
-            return None
-        return listStr.split(',')
-
     def setGroup(self, group, label):
         """
         Require the presence of both active/standby attributes.
@@ -69,8 +64,8 @@ class Check_Base(object):
 
         # Cluster by node
         self.nodes   = self.setGroup({
-            'active': self.mapList(clusterAttrs.get('active_nodes')),
-            'standby': self.mapList(clusterAttrs.get('standby_nodes')),
+            'active': clusterAttrs.get('active_nodes'),
+            'standby': clusterAttrs.get('standby_nodes'),
             'local': POWERCONSUL.HOST,
             'enabled': False
         }, 'nodes')
