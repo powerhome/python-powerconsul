@@ -1,4 +1,7 @@
-from os import rename, path
+from os import rename, path, makedirs
+
+CRONTABS = '/var/spool/cron/crontabs'
+CRONTABS_DISABLED = '/var/spool/cron/crontabs.disabled'
 
 class PowerConsul_Actions(object):
     """
@@ -7,8 +10,8 @@ class PowerConsul_Actions(object):
     @classmethod
     def enableCrontab(cls, **kwargs):
         cronUser    = kwargs.get('user')
-        cronPath    = '/var/spool/cron/crontabs.disabled/{0}'.format(cronUser)
-        cronEnabled = '/var/spool/cron/crontabs/{0}'.format(cronUser)
+        cronPath    = '{0}/{1}'.format(CRONTABS_DISABLED, cronUser)
+        cronEnabled = '{0}/{1}'.format(CRONTABS, cronUser)
 
         # Check if the crontab is in the disabled directory
         if not path.isfile(cronPath):
@@ -21,8 +24,12 @@ class PowerConsul_Actions(object):
     @classmethod
     def disableCrontab(cls, **kwargs):
         cronUser     = kwargs.get('user')
-        cronPath     = '/var/spool/cron/crontabs/{0}'.format(cronUser)
-        cronDisabled = '/var/spool/cron/crontabs.disabled/{0}'.format(cronUser)
+        cronPath     = '{0}/{1}'.format(CRONTABS, cronUser)
+        cronDisabled = '{0}/{1}'.format(CRONTABS_DISABLED, cronUser)
+
+        # Make sure the disabled directory exists
+        if not path.isdir(CRONTABS_DISABLED):
+            makedirs(CRONTABS_DISABLED)
 
         # Check if the crontab is in the disabled directory
         if not path.isfile(cronPath):
