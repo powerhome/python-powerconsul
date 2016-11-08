@@ -71,7 +71,7 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
 
         # See if output is JSON
         try:
-            POWERCONSUL.LOG.info('Parse service output: [{0}]'.format(str(self.serviceJSON['Output'])))
+            POWERCONSUL.LOG.info('Parse service output: [{0}]'.format(str(self.serviceJSON['Output'].rstrip())))
             if isinstance(self.serviceJSON['Output'], dict):
                 return self.serviceJSON['Output']['action']
             return json.loads(self.serviceJSON['Output'])['action']
