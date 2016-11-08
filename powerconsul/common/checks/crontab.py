@@ -52,13 +52,13 @@ class Check_Crontab(Check_Base):
         # Crontab should be enabled
         if expects == True:
             if enabled:
+                self.dns(True)
                 POWERCONSUL.SHOW.passing({
                     'type': 'crontab',
                     'crontab': self.name,
                     'expects': expects,
                     'clustered': clustered
                 })
-                self.dns(True)
             POWERCONSUL.SHOW.critical({
                 'type': 'crontab',
                 'crontab': self.name,
@@ -70,13 +70,13 @@ class Check_Crontab(Check_Base):
         # Crontab should be disabled
         if expects == False:
             if not enabled:
+                self.dns(False)
                 POWERCONSUL.SHOW.passing({
                     'type': 'crontab',
                     'crontab': self.name,
                     'expects': expects,
                     'clustered': clustered
                 })
-                self.dns(False)
             POWERCONSUL.SHOW.critical({
                 'type': 'crontab',
                 'crontab': self.name,

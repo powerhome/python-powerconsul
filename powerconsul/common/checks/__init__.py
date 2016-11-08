@@ -24,25 +24,28 @@ class Check_Base(object):
         """
         Disable/enable this service in a DNS prepared query via tags.
         """
-        serviceObj = POWERCONSUL.API.agent.services()[self.service]
+        try:
+            serviceObj = POWERCONSUL.API.agent.services()[self.service]
 
-        # Enable DNS
-        if state:
-            serviceObj['Tags'].remove('nodns')
+            # Enable DNS
+            if state:
+                serviceObj['Tags'].remove('nodns')
 
-        # Disable DNS
-        else:
-            if not 'nodns' in serviceObj:
-                serviceObj['Tags'].append('nodns')
+            # Disable DNS
+            else:
+                if not 'nodns' in serviceObj:
+                    serviceObj['Tags'].append('nodns')
 
-        # Re-register the service
-        POWERCONSUL.API.service.register(self.service,
-            service_id = serviceObj['ID'],
-            address    = serviceObj['Address'],
-            port       = serviceObj['Port'],
-            tags       = serviceObj['Tags'],
-            check      = json.loads(open('/etc/consul/service_{0}.json'.format(self.service)).read())['checks']
-        )
+            # Re-register the service
+            POWERCONSUL.API.service.register(self.service,
+                service_id = serviceObj['ID'],
+                address    = serviceObj['Address'],
+                port       = serviceObj['Port'],
+                tags       = serviceObj['Tags'],
+                check      = json.loads(open('/etc/consul/service_{0}.json'.format(self.service)).read())['checks']
+            )
+        except Exception as :
+            POWERCONSUL.LOG.error('Failed to update DNS tag: {0}'.format(str(e)))
 
     def setGroup(self, group, label):
         """
