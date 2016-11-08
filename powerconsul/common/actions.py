@@ -5,10 +5,12 @@ class PowerConsul_Actions(object):
     @classmethod
     def enableCrontab(cls, **kwargs):
         cronUser = kwargs.get('user')
+        POWERCONSUL.LOG.info('Enabling crontab for user: {0}'.format(cronUser))
 
     @classmethod
     def disableCrontab(cls, **kwargs):
         cronUser = kwargs.get('user')
+        POWERCONSUL.LOG.info('Disabling crontab for user: {0}'.format(cronUser))
 
     @classmethod
     def get(cls, method):
