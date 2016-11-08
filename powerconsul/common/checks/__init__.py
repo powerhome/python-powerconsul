@@ -44,7 +44,7 @@ class Check_Base(object):
                 tags       = serviceObj['Tags'],
                 check      = json.loads(open('/etc/consul/service_{0}.json'.format(self.service)).read())['checks']
             )
-        except Exception as :
+        except Exception as e:
             POWERCONSUL.LOG.error('Failed to update DNS tag: {0}'.format(str(e)))
 
     def setGroup(self, group, label):
