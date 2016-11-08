@@ -30,13 +30,14 @@ class Check_Base(object):
             # Enable DNS
             if state:
                 if 'nodns' in serviceObj['Tags']:
+                    POWERCONSUL.LOG.info('Setting DNS state for [{0}] service: enabled=yes'.format(self.service))
                     serviceObj['Tags'].remove('nodns')
 
             # Disable DNS
             else:
                 if not 'nodns' in serviceObj['Tags']:
+                    POWERCONSUL.LOG.info('Setting DNS state for [{0}] service: enabled=no'.format(self.service))
                     serviceObj['Tags'].append('nodns')
-            POWERCONSUL.LOG.info('Setting DNS state for [{0}] service: enabled={1}'.format(self.service, state))
 
             # Re-register the service
             POWERCONSUL.API.agent.service.register(self.service,
