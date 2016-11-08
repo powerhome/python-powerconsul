@@ -27,43 +27,12 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
             "short": "s",
             "long": "service",
             "help": "The name of the local service to check the status of.",
-            "action": "store",
-            "required": True
+            "action": "store"
         },
         {
             "short": "S",
             "long": "consulservice",
             "help": "The name of the Consul service to check against.",
-            "action": "store"
-        },
-        {
-            "short": "c",
-            "long": "clustered",
-            "help": "Is this service part of a cluster or not (default=False)?",
-            "action": "store_true"
-        },
-        {
-            "short": "d",
-            "long": "standbydc",
-            "help": "The standby datacenter for this service.",
-            "action": "store"
-        },
-        {
-            "short": "D",
-            "long": "activedc",
-            "help": "The active datacenter for this service.",
-            "action": "store"
-        },
-        {
-            "short": "n",
-            "long": "standbynodes",
-            "help": "A list of standby node hostnames: i.e., node1,node2",
-            "action": "store"
-        },
-        {
-            "short": "N",
-            "long": "activenodes",
-            "help": "A list of active node hostnames: i.e., node3,node4",
             "action": "store"
         },
         {

@@ -9,8 +9,11 @@ class Check_Base(object):
         self.datacenters = None
         self.nodes       = None
         self.allActive   = False
-        self.clustered   = self.setCluster(POWERCONSUL.ARGS.get('clustered'))
+        self.clustered   = self.setCluster()
         self.filterStr   = ''
+
+        # The Consul service name
+        self.service     = POWERCONSUL.ARGS.get('consulservice', required='Must supply a Consul servicename: powerconsul check <resource> -S <serviceName>')
 
         # Resource name
         self.name        = None
@@ -44,25 +47,35 @@ class Check_Base(object):
         group.enabled = True
         return group
 
-    def setCluster(self, state):
+    def setCluster(self):
         """
         Set cluster attributes.
         """
-        if not state:
+        index, data = POWERCONSUL.API.kv.get('cluster/{0}/{1}'.format(POWERCONSUL.ENV, self.service))
+
+        # Service is not clustered
+        if not data:
+            POWERCONSUL.LOG.info('No cluster attributes found, assuming standalone node.')
             return False
+
+        # Parse out cluster information
+        try:
+            clusterAttrs = json.loads(data['Value'])
+        except Exception as e:
+            POWERCONSUL.die('Failed to parse cluster information, must be JSON string: {0}'.format(str(e)))
 
         # Cluster by node
         self.nodes   = self.setGroup({
-            'active': self.mapList(POWERCONSUL.ARGS.get('activenodes')),
-            'standby': self.mapList(POWERCONSUL.ARGS.get('standbynodes')),
+            'active': self.mapList(clusterAttrs.get('active_nodes', default=None)),
+            'standby': self.mapList(clusterAttrs.get('standby_nodes', default=None)),
             'local': POWERCONSUL.HOST,
             'enabled': False
         }, 'nodes')
 
         # Cluster by datacenter
         self.datacenters = self.setGroup({
-            'active': POWERCONSUL.ARGS.get('activedc'),
-            'standby': POWERCONSUL.ARGS.get('standbydc'),
+            'active': clusterAttrs.get('active_datacenter', default=None),
+            'standby': clusterAttrs.get('standby_datacenter', default=None),
             'local': POWERCONSUL.CONFIG['datacenter'],
             'all': POWERCONSUL.API.catalog.datacenters(),
             'enabled': False
@@ -156,23 +169,22 @@ class Check_Base(object):
         If the node is a standby, use this to check if the nodes in the active
         datacenter for this resource are passing/healthy.
         """
-        consulService = POWERCONSUL.ARGS.get('consulservice', required='Consul service name required for clustered active/standby checks!')
 
         # Store flag if any active services are passing
         anyPassing = False
 
         # By datacenter
         if datacenters:
-            POWERCONSUL.LOG.info('Looking for healthy/passing active [{0}] {1}s by: datacenters={2}'.format(consulService, self.resource, json.dumps(datacenters)))
-            for status in self.checkConsul(consulService, datacenters=datacenters):
+            POWERCONSUL.LOG.info('Looking for healthy/passing active [{0}] {1}s by: datacenters={2}'.format(self.service, self.resource, json.dumps(datacenters)))
+            for status in self.checkConsul(self.service, datacenters=datacenters):
                 if anyPassing:
                     continue
                 anyPassing = status
 
         # By nodes
         if nodes:
-            POWERCONSUL.LOG.info('Looking for healthy/passing active [{0}] {1}s by: nodes={2}'.format(consulService, self.resource, json.dumps(nodes)))
-            for status in self.checkConsul(consulService, datacenters=self.datacenters.all, nodes=nodes):
+            POWERCONSUL.LOG.info('Looking for healthy/passing active [{0}] {1}s by: nodes={2}'.format(self.service, self.resource, json.dumps(nodes)))
+            for status in self.checkConsul(self.service, datacenters=self.datacenters.all, nodes=nodes):
                 if anyPassing:
                     continue
                 anyPassing = status
