@@ -34,8 +34,8 @@ class Check_Crontab(Check_Base):
             cron_group = getgrgid(cron_stat.st_gid)[0]
 
             # Should be <user>/root
-            if not (cron_owner == self.name) or not (cron_group == 'root'):
-                POWERCONSUL.SHOW.warning('Incorrect permissions "{0}:{1}" for <{2}> crontab, expected "{3}:root"'.format(cron_owner, cron_group, self.name, self.name))
+            if not (cron_owner == self.name) or not (cron_group == 'crontab'):
+                POWERCONSUL.SHOW.warning('Incorrect permissions "{0}:{1}" for <{2}> crontab, expected "{3}:crontab"'.format(cron_owner, cron_group, self.name, self.name))
             return True
 
         # Crontab is disabled, but does not exist in '/var/spool/cron/crontabs.disabled'
