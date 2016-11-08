@@ -30,11 +30,8 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
         {
             "short": "u",
             "long": "user",
-            "help": "A username for supported triggers.".,
+            "help": "A username for supported triggers.",
             "action": "store"
-        },
-        {
-            "short":
         }
     ] + OPTIONS
 
@@ -45,9 +42,6 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
         },
         "warning": {
             "help": "Trigger an action for a service in a warning state."
-        },
-        "crontab": {
-            "help": "Enable or disable a user's crontab file."
         }
     }
 
@@ -55,10 +49,6 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
         super(PowerConsulHandler_Triggers, self).__init__(self.id)
 
         # Service attributes
-        self.serviceJSON = None
-        self.serviceName = None
-
-    def _parse_service(self):
         self.serviceJSON = json.loads(POWERCONSUL.ARGS.get('service'))
         self.serviceName = self.serviceJSON['ServiceName']
 
@@ -91,7 +81,6 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
         """
         Trigger an action for a service in a critical state.
         """
-        self._parse_service()
 
         # Action to run
         action = self._get_action(self.serviceName, 'critical')
@@ -104,7 +93,6 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
         """
         Trigger an action for a service in a warning state.
         """
-        self._parse_service()
 
         # Action to run
         action = self._get_action(self.serviceName, 'warning')
