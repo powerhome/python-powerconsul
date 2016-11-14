@@ -52,6 +52,7 @@ class PowerConsul_Action(object):
             with open(self._script, 'w') as f:
                 for line in f.readlines():
                     f.write(self._subvars(line))
+                    f.write('\n')
             os.chmod(self._script, os.stat(self._script).st_mode | stat.S_IEXEC)
 
             # Define the command
