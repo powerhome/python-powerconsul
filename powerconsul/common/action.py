@@ -11,6 +11,7 @@ class PowerConsul_Action(object):
     def __init__(self, actionData):
         self._data    = actionData
         self._command = ['/usr/bin/env', 'true']
+        self._type    = None
 
         # Temporary script
         self._script  = None
@@ -27,6 +28,7 @@ class PowerConsul_Action(object):
 
         # Trigger is a script
         if self._data.startswith('#!/bin/bash'):
+            self._type   = 'script'
 
             # Define a temporary script
             self._script = '/tmp/trigger_{0}.sh'.format(str(uuid4()))
@@ -41,6 +43,7 @@ class PowerConsul_Action(object):
 
         # Assume direct shell command
         else:
+            self._type    = 'command'
             self._command = self._data.split(' ')
 
     def _cleanup(self):
@@ -59,11 +62,11 @@ class PowerConsul_Action(object):
 
         # Command failed
         if proc.returncode != 0:
-            POWERCONSUL.LOG.error('Failed to run action: {0}'.format(str(err).rstrip()))
+            POWERCONSUL.LOG.info('ConsulService[{0}].ACTION.run: type={1}, error='.format(POWERCONSUL.service, self._type, str(err).rstrip()))
 
         # Command success
         else:
-            POWERCONSUL.LOG.info('Successfully ran action: {1}'.format(str(out).rstrip()))
+            POWERCONSUL.LOG.info('ConsulService[{0}].ACTION.run: type={1}, output='.format(POWERCONSUL.service, self._type, str(out).rstrip()))
 
         # Post action cleanup
         self._cleanup()
