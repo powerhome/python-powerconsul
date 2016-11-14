@@ -26,9 +26,6 @@ class PowerConsulHandler_Base(object):
             POWERCONSUL.ARGS.help()
             POWERCONSUL.die("\nUnsupported command: {0}\n".format(self.command))
 
-        # Bootstrap the cluster object
-        POWERCONSUL.CLUSTER.bootstrap()
-
         # Run the command
         getattr(self, self.command)()
 

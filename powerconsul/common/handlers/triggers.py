@@ -52,6 +52,9 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
     def __init__(self):
         super(PowerConsulHandler_Triggers, self).__init__(self.id)
 
+        # Bootstrap cluster state
+        POWERCONSUL.CLUSTER.bootstrap()
+
     def critical(self):
         """
         Trigger an action for a service in a critical state.

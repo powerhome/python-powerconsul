@@ -8,8 +8,9 @@ class Check_Base(object):
         self.resource       = resource
         self.name           = None
 
-        # Parse the Consul service name
+        # Parse the Consul service name and bootstrap cluster status
         POWERCONSUL.service = POWERCONSUL.ARGS.get('consulservice', required='Must supply a Consul servicename: powerconsul check <resource> -S <serviceName>')
+        POWERCONSUL.CLUSTER.bootstrap()
 
     def setDNS(self, state):
         """
