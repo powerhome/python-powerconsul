@@ -8,10 +8,11 @@ class PowerConsul_Action(object):
     """
     Class object representing a trigger action.
     """
-    def __init__(self, actionData):
+    def __init__(self, actionData, state):
         self._data    = actionData
         self._command = ['/bin/echo', 'noop']
         self._type    = None
+        self._state   = state
 
         # Temporary script
         self._script  = None
@@ -63,11 +64,11 @@ class PowerConsul_Action(object):
 
         # Command failed
         if proc.returncode != 0:
-            POWERCONSUL.LOG.info('ConsulService[{0}].ACTION.run: type={1}, error={2}'.format(POWERCONSUL.service, self._type, str(err).rstrip()))
+            POWERCONSUL.LOG.info('ConsulService[{0}].ACTION.run: type={1}, state={2}, error={3}'.format(POWERCONSUL.service, self._type, self._state, str(err).rstrip()))
 
         # Command success
         else:
-            POWERCONSUL.LOG.info('ConsulService[{0}].ACTION.run: type={1}, output={2}'.format(POWERCONSUL.service, self._type, str(out).rstrip()))
+            POWERCONSUL.LOG.info('ConsulService[{0}].ACTION.run: type={1}, state={2}, output={3}'.format(POWERCONSUL.service, self._type, self._state, str(out).rstrip()))
 
         # Post action cleanup
         self._cleanup()
@@ -93,7 +94,7 @@ class PowerConsul_Action(object):
             # Return the action object
             return cls(POWERCONSUL.getKV('triggers/{0}/{1}/{2}'.format(
                 POWERCONSUL.service, POWERCONSUL.CLUSTER.role, state
-            )))
+            )), state)
 
         # Failed to parse service action/object
         except Exception as e:
