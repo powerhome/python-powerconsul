@@ -36,9 +36,6 @@ class PowerConsulHandler_Watchers(PowerConsulHandler_Base):
     def __init__(self):
         super(PowerConsulHandler_Watchers, self).__init__(self.id)
 
-        # Bootstrap cluster state
-        POWERCONSUL.CLUSTER.bootstrap()
-
     def _getServices(self):
         """
         Parse incoming Consul JSON data from stdin and extract node services.
