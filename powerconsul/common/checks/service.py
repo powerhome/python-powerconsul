@@ -38,13 +38,13 @@ class Check_Service(Check_Base):
         # Service should be running
         if expects == True:
             if running:
-                POWERCONSUL.SHOW.passing({
+                POWERCONSUL.OUTPUT.passing({
                     'type': 'service',
                     'service': self.name,
                     'expects': expects,
                     'clustered': clustered
                 })
-            POWERCONSUL.SHOW.critical({
+            POWERCONSUL.OUTPUT.critical({
                 'type': 'service',
                 'service': self.name,
                 'action': '/usr/bin/env service {0} start'.format(self.name),
@@ -55,13 +55,13 @@ class Check_Service(Check_Base):
         # Service should be stopped
         if expects == False:
             if not running:
-                POWERCONSUL.SHOW.passing({
+                POWERCONSUL.OUTPUT.passing({
                     'type': 'service',
                     'service': self.name,
                     'expects': expects,
                     'clustered': clustered
                 })
-            POWERCONSUL.SHOW.critical({
+            POWERCONSUL.OUTPUT.critical({
                 'type': 'service',
                 'service': self.name,
                 'action': '/usr/bin/env service {0} stop'.format(self.name),

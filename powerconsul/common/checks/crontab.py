@@ -35,7 +35,7 @@ class Check_Crontab(Check_Base):
 
             # Should be <user>/root
             if not (cron_owner == self.name) or not (cron_group == 'crontab'):
-                POWERCONSUL.SHOW.warning('Incorrect permissions "{0}:{1}" for <{2}> crontab, expected "{3}:crontab"'.format(cron_owner, cron_group, self.name, self.name))
+                POWERCONSUL.OUTPUT.warning('Incorrect permissions "{0}:{1}" for <{2}> crontab, expected "{3}:crontab"'.format(cron_owner, cron_group, self.name, self.name))
             return True
 
         # Crontab is disabled, but does not exist in '/var/spool/cron/crontabs.disabled'
@@ -47,22 +47,22 @@ class Check_Crontab(Check_Base):
         """
         Ensure a specific crontab state.
         """
-        enabled  = self.enabled()
+        enabled = self.enabled()
 
         # Crontab should be enabled
         if expects == True:
             if enabled:
-                self.dns(True)
-                POWERCONSUL.SHOW.passing({
+                self.setDNS(True)
+                POWERCONSUL.OUTPUT.passing({
                     'type': 'crontab',
                     'crontab': self.name,
                     'expects': expects,
                     'clustered': clustered
                 })
-            POWERCONSUL.SHOW.critical({
+            POWERCONSUL.OUTPUT.critical({
                 'type': 'crontab',
                 'crontab': self.name,
-                'action': '@enableCrontab user={0}'.format(self.name),
+                'action': self.setAction('critical'),
                 'expects': expects,
                 'clustered': clustered
             })
@@ -70,14 +70,14 @@ class Check_Crontab(Check_Base):
         # Crontab should be disabled
         if expects == False:
             if not enabled:
-                self.dns(False)
-                POWERCONSUL.SHOW.passing({
+                self.setDNS(False)
+                POWERCONSUL.OUTPUT.passing({
                     'type': 'crontab',
                     'crontab': self.name,
                     'expects': expects,
                     'clustered': clustered
                 })
-            POWERCONSUL.SHOW.critical({
+            POWERCONSUL.OUTPUT.critical({
                 'type': 'crontab',
                 'crontab': self.name,
                 'action': '@disableCrontab user={0}'.format(self.name),
