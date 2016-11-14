@@ -145,7 +145,7 @@ class PowerConsul_Cluster(object):
                 self.hasStandby = False
 
         # Log the bootstrap process results
-        POWERCONSUL.LOG.info('cluster_attrs[{0}]: active={1}, role={2}, hasStandby={3}'.format(
+        POWERCONSUL.LOG.info('ClusterService[{0}]: active={1}, role={2}, hasStandby={3}'.format(
             POWERCONSUL.service, self.active, self.role, self.hasStandby
         ))
 
@@ -160,11 +160,9 @@ class PowerConsul_Cluster(object):
         if datacenters:
             for dc in datacenters:
                 dcServices = POWERCONSUL.API.health.service(POWERCONSUL.service, dc=dc)[1]
-                POWERCONSUL.LOG.info('Collecting [{0}] Consul [{1}] services in datacenter: {2}'.format(str(len(dcServices)), POWERCONSUL.service, dc))
                 services = services + dcServices
         else:
             services = POWERCONSUL.API.health.service(POWERCONSUL.service)[1]
-        POWERCONSUL.LOG.info('Checking against [{0}] Consul [{1}] services'.format(str(len(services)), POWERCONSUL.service))
 
         # Process services
         for service in services:
@@ -182,9 +180,6 @@ class PowerConsul_Cluster(object):
             # Node must be in the same environment/role
             if (nodeEnv == POWERCONSUL.ENV) and (nodeRole == POWERCONSUL.ROLE):
                 statusList.append(True if checks['Status'] == 'passing' else False)
-                POWERCONSUL.LOG.info('Discovered cluster node [{0}]: env={1}, role={2}, service={3}, status={4}'.format(
-                    node, nodeEnv, nodeRole, POWERCONSUL.service, checks['Status']
-                ))
 
         # Return the status list
         return statusList
@@ -193,27 +188,32 @@ class PowerConsul_Cluster(object):
         """
         Check if a Consul service has any active nodes in a passing state.
         """
-        # Store flag if any active services are passing
         anyPassing = False
+
+        # Can only filter by datacenters or nodes
+        if datacenters and nodes:
+            POWERCONSUL.die('Cannot check for active/passing services by datacenters/nodes at the same time!')
 
         # By datacenter
         if datacenters:
-            POWERCONSUL.LOG.info('Looking for healthy/passing active [{0}] {1}s by: datacenters={2}'.format(POWERCONSUL.service, self.resource, json.dumps(datacenters)))
-            for status in self.checkService(POWERCONSUL.service, datacenters=datacenters):
+            for status in self.checkService(datacenters=datacenters):
                 if anyPassing:
                     continue
                 anyPassing = status
 
         # By nodes
         if nodes:
-            POWERCONSUL.LOG.info('Looking for healthy/passing active [{0}] {1}s by: nodes={2}'.format(POWERCONSUL.service, self.resource, json.dumps(nodes)))
-            for status in self.checkService(POWERCONSUL.service, datacenters=self.datacenters.all, nodes=nodes):
+            for status in self.checkService(datacenters=self.datacenters.all, nodes=nodes):
                 if anyPassing:
                     continue
                 anyPassing = status
 
+        # Log the results
+        POWERCONSUL.LOG.info('ConsulService[{0}].activePassing: by_nodes={1}, by_datacenters={2}, any_passing={3}'.format(
+            POWERCONSUL.service, ('yes' if nodes else 'no'), ('yes' if datacenters else 'no'), ('yes' if anyPassing else 'no')
+        ))
+
         # Return the flag that shows in any active services are passing
-        POWERCONSUL.LOG.info('Healthy/passing active {0}s: {1}'.format(self.resource, anyPassing))
         return anyPassing
 
     @classmethod
