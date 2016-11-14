@@ -92,7 +92,7 @@ class PowerConsul_Action(object):
             # Return the action object
             return cls(POWERCONSUL.getKV('triggers/{0}/{1}/{2}'.format(
                 POWERCONSUL.service, POWERCONSUL.CLUSTER.role, state
-            )), serviceJSON)
+            )))
 
         # Failed to parse service action/object
         except Exception as e:
