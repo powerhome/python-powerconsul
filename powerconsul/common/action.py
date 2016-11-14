@@ -29,7 +29,7 @@ class PowerConsul_Action(object):
             '@HOST': POWERCONSUL.HOST,
             '@ROLE': POWERCONSUL.ROLE
         }.iteritems():
-            cmdStr.replace(k, v)
+            cmdStr = cmdStr.replace(k, v)
         return cmdStr
 
     def _bootstrap(self):
