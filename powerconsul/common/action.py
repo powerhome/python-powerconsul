@@ -24,6 +24,7 @@ class PowerConsul_Action(object):
         Bootstrap the action object.
         """
         if not self._data:
+            self._type   = 'default'
             return None
 
         # Trigger is a script
