@@ -14,34 +14,46 @@ class Check_Crontab(Check_Base):
         super(Check_Crontab, self).__init__('crontab')
 
         # Crontab attributes
-        self.name = POWERCONSUL.ARGS.get('user', required='Local user name required: powerconsul check crontab -u <username>')
+        self.name    = POWERCONSUL.ARGS.get('user', required='Local user name required: powerconsul check crontab -u <username>')
+        self.pattern = POWERCONSUL.ARGS.get('pattern')
+        self.path    = '/var/spool/cron/crontabs/{0}'.format(self.name)
 
-        # Crontab paths
-        self.path = {
-            'enabled': '/var/spool/cron/crontabs/{0}'.format(self.name),
-            'disabled': '/var/spool/cron/crontabs.disabled/{0}'.format(self.name)
-        }
+        # Custom error string
+        self.error   = ''
 
     def enabled(self):
         """
         Check if a crontab is enabled or not.
         """
-        if path.isfile(self.path['enabled']):
-            cron_stat  = stat(self.path['enabled'])
 
-            # Check ownership on crontab
-            cron_owner = getpwuid(cron_stat.st_uid)[0]
-            cron_group = getgrgid(cron_stat.st_gid)[0]
+        # Crontab does not exist
+        if not path.isfile(self.path):
+            self.error = 'Crontab file not found: {0}'.format(self.path)
+            return False
 
-            # Should be <user>/root
-            if not (cron_owner == self.name) or not (cron_group == 'crontab'):
-                POWERCONSUL.OUTPUT.warning('Incorrect permissions "{0}:{1}" for <{2}> crontab, expected "{3}:crontab"'.format(cron_owner, cron_group, self.name, self.name))
-            return True
+        # Check ownership on crontab
+        cron_stat  = stat(self.path)
+        cron_owner = getpwuid(cron_stat.st_uid)[0]
+        cron_group = getgrgid(cron_stat.st_gid)[0]
 
-        # Crontab is disabled, but does not exist in '/var/spool/cron/crontabs.disabled'
-        if not path.isfile(self.path['disabled']):
-            POWERCONSUL.LOG.info('Crontab for [{0}] disabled, but does not exist in: /var/spool/cron/crontabs.disabled'.format(self.name))
-        return False
+        # Should be <user>/crontab
+        if not (cron_owner == self.name) or not (cron_group == 'crontab'):
+            self.error = 'Incorrect permissions "{0}:{1}" for <{2}> crontab, expected "{3}:crontab"'.format(cron_owner, cron_group, self.name, self.name)
+            return False
+
+        # If searching for a pattern
+        if self.pattern:
+            foundPattern = False
+            with open(self.path, 'r') as f:
+                for line in f.readlines():
+                    if self.pattern in line:
+                        foundPattern = True
+            if not foundPattern:
+                self.error = 'Failed to find pattern [{0}] in crontab: {1}'.format(self.pattern, self.path)
+                return False
+
+        # Crontab exists and is enabled
+        return True
 
     def ensure(self, expects=True, clustered=False, active=True):
         """
@@ -63,7 +75,8 @@ class Check_Crontab(Check_Base):
                 'type': 'crontab',
                 'crontab': self.name,
                 'expects': expects,
-                'clustered': clustered
+                'clustered': clustered,
+                'error': self.error
             })
 
         # Crontab should be disabled
@@ -80,5 +93,6 @@ class Check_Crontab(Check_Base):
                 'type': 'crontab',
                 'crontab': self.name,
                 'expects': expects,
-                'clustered': clustered
+                'clustered': clustered,
+                'error': 'Crontab is enabled: {0}'.format(self.path)
             })

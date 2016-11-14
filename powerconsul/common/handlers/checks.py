@@ -40,6 +40,12 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
             "long": "user",
             "help": "A local user account for supported checks.",
             "action": "store"
+        },
+        {
+            "short": "p",
+            "long": "pattern",
+            "help": "A pattern to search for in the target resource.",
+            "action": "store"
         }
     ] + OPTIONS
 
