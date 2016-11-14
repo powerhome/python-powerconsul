@@ -8,60 +8,11 @@ from traceback import print_exc
 from importlib import import_module
 from sys import stderr, exit, exc_info, stdout
 
-# Power Consul actions
-from powerconsul.common.actions import PowerConsul_Actions
-
-class Show(object):
-    """
-    Static methods for writing output and exit codes.
-    """
-    @staticmethod
-    def passing(message):
-        try:
-            message['state'] = 'passing'
-            message['code']  = 0
-
-            if not 'action' in message:
-                message['action'] = '/usr/bin/env true'
-
-            stdout.write('{0}\n'.format(json.dumps(message)))
-        except:
-            stdout.write('{0}\n'.format(message))
-        exit(0)
-
-    @staticmethod
-    def warning(message):
-        """
-        Show a warning message and exit 1.
-        """
-        try:
-            message['state'] = 'warning'
-            message['code']  = 1
-
-            if not 'action' in message:
-                message['action'] = '/usr/bin/env true'
-
-            stdout.write('{0}\n'.format(json.dumps(message)))
-        except:
-            stdout.write('{0}\n'.format(message))
-        exit(1)
-
-    @staticmethod
-    def critical(message, code=2):
-        """
-        Show a critical message and exit 2.
-        """
-        try:
-            message['state'] = 'critical'
-            message['code']  = code
-
-            if not 'action' in message:
-                message['action'] = '/usr/bin/env true'
-
-            stdout.write('{0}\n'.format(json.dumps(message)))
-        except:
-            stdout.write('{0}\n'.format(message))
-        exit(code)
+# Power Consul modules
+from powerconsul.common.output import PowerConsul_Output
+from powerconsul.common.collection import PowerConsul_Collection
+from powerconsul.common.action import PowerConsul_Action
+from powerconsul.common.cluster import PowerConsul_Cluster
 
 class PowerConsulCommon(object):
     """
@@ -70,24 +21,33 @@ class PowerConsulCommon(object):
     def __init__(self):
 
         # Power Consul Extended Objects
-        self.HANDLERS = None
-        self.ARGS     = None
+        self.HANDLERS   = None
+        self.ARGS       = None
 
         # Consul API / configuration
-        self.API      = Consul()
-        self.CONFIG   = self._get_config()
-        self.SHOW     = Show
-        self.ACTIONS  = PowerConsul_Actions
+        self.API        = Consul()
+        self.CONFIG     = self._getConfig()
 
         # PowerHRG environment
-        self.ENV      = self.getEnv()
-        self.ROLE     = self.getRole()
-        self.HOST     = gethostname()
+        self.ENV        = self._getEnv()
+        self.ROLE       = self._getRole()
+        self.HOST       = gethostname()
+
+        # Consul service
+        self.service    = None
 
         # Logger
-        self.LOG      = None
+        self.LOG        = None
 
-    def _get_config(self):
+        # Output / collection generators / action handler
+        self.OUTPUT     = PowerConsul_Output
+        self.COLLECTION = PowerConsul_Collection
+        self.ACTION     = PowerConsul_Action
+
+        # Cluster object
+        self.CLUSTER    = PowerConsul_Cluster()
+
+    def _getConfig(self):
         """
         Parse the main Consul agent configuration.
         """
@@ -96,19 +56,28 @@ class PowerConsulCommon(object):
         except Exception as e:
             self.die('Failed to load Consul configuration: {0}'.format(str(e)))
 
-    def getRole(self, hostname=False):
+    def _getRole(self, hostname=False):
         """
         Extract the server role from the hostname.
         """
         hostname = hostname if hostname else gethostname()
         return re.compile(r'(^[^0-9]*)[0-9]*$').sub(r'\g<1>', hostname.replace('{0}-'.format(self.ENV), ''))
 
-    def getEnv(self, hostname=False):
+    def _getEnv(self, hostname=False):
         """
         Extract the PowerHRG environment from the hostname.
         """
         hostname = hostname if hostname else gethostname()
         return re.compile(r'(^[^-]*)-.*$').sub(r'\g<1>', hostname)
+
+    def getKV(self, key, default=None):
+        """
+        Perform a key/value lookup.
+        """
+        index, data = self.API.kv.get(key)
+
+        # Return any value if found or default
+        return default if not data else data['Value']
 
     def bootstrap(self):
         """
@@ -158,7 +127,7 @@ class PowerConsulCommon(object):
         error = kwargs.get('error', 'An unknown request error has occurred')
 
         # Cannot specify both value/isnot at the same time
-        if ('value'in kwargs) and ('isnot' in kwargs):
+        if ('value' in kwargs) and ('isnot' in kwargs):
             raise Exception('Cannot supply both "value" and "isnot" arguments at the same time')
 
         # Equal to / not equal to
