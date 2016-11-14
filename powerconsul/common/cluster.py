@@ -144,6 +144,11 @@ class PowerConsul_Cluster(object):
             if not self.datacenters.enabled and not self.nodes.enabled:
                 self.hasStandby = False
 
+        # Log the bootstrap process results
+        POWERCONSUL.LOG.info('cluster_attrs[{0}]: active={1}, role={2}, hasStandby={3}'.format(
+            POWERCONSUL.service, self.active, self.role, self.hasStandby
+        ))
+
     def checkService(self, datacenters=None, nodes=None):
         """
         Check the state of a Consul service.
