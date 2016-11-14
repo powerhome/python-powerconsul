@@ -209,7 +209,7 @@ class PowerConsul_Cluster(object):
                 anyPassing = status
 
         # Log the results
-        POWERCONSUL.LOG.info('ConsulService[{0}].activePassing: by_nodes={1}, by_datacenters={2}, any_passing={3}, role={4}'.format(
+        POWERCONSUL.LOG.info('ConsulService[{0}].CLUSTER.activePassing: by_nodes={1}, by_datacenters={2}, any_passing={3}, role={4}'.format(
             POWERCONSUL.service,
             ('yes' if nodes else 'no'),
             ('yes' if datacenters else 'no'),

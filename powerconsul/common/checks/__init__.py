@@ -23,19 +23,23 @@ class Check_Base(object):
             # Enable DNS
             if state:
                 if 'nodns' in serviceObj['Tags']:
-                    POWERCONSUL.LOG.info('Setting DNS state for [{0}] service: enabled=yes'.format(POWERCONSUL.service))
                     applyChanges = True
                     serviceObj['Tags'].remove('nodns')
 
             # Disable DNS
             else:
                 if not 'nodns' in serviceObj['Tags']:
-                    POWERCONSUL.LOG.info('Setting DNS state for [{0}] service: enabled=no'.format(POWERCONSUL.service))
                     applyChanges = True
                     serviceObj['Tags'].append('nodns')
 
             # Re-register the service
             if applyChanges:
+                POWERCONSUL.LOG.info('ConsulService[{0}].setDNS: enabled={1}'.format(
+                    POWERCONSUL.service,
+                    ('no' if ('nodns' in serviceObj['Tags']) else 'yes')
+                ))
+
+                # Make the API request
                 POWERCONSUL.API.agent.service.register(POWERCONSUL.service,
                     service_id = serviceObj['ID'],
                     address    = serviceObj['Address'],
@@ -43,6 +47,8 @@ class Check_Base(object):
                     tags       = serviceObj['Tags'],
                     check      = json.loads(open('/etc/consul/service_{0}.json'.format(POWERCONSUL.service)).read())['service']['checks'][0]
                 )
+
+        # Failed to update DNS tag
         except Exception as e:
             POWERCONSUL.LOG.error('Failed to update DNS tag: {0}'.format(str(e)))
 
@@ -54,12 +60,11 @@ class Check_Base(object):
             return None
 
         # Log the service check
-        POWERCONSUL.LOG.info('Clustered {0} [{1}@{2}]: active[{3}]/standby[{4}] datacenters'.format(
-            self.resource,
-            self.name,
-            POWERCONSUL.CLUSTER.datacenters.local,
+        POWERCONSUL.LOG.info('ConsulService[{0}].ensure.byDatacenter: active=[{1}], standby=[{2}], local={3}'.format(
+            POWERCONSUL.service,
             POWERCONSUL.CLUSTER.datacenters.active,
-            POWERCONSUL.CLUSTER.datacenters.standby
+            POWERCONSUL.CLUSTER.datacenters.standby,
+            POWERCONSUL.CLUSTER.datacenters.local
         ))
 
         # Node is active
@@ -84,11 +89,11 @@ class Check_Base(object):
             return False
 
         # Log the service check
-        POWERCONSUL.LOG.info('Clustered {0} [{1}]: active[{2}]/standby[{3}] nodes'.format(
-            self.resource,
-            self.name,
+        POWERCONSUL.LOG.info('ConsulService[{0}].ensure.byNodes: active=[{1}], standby=[{2}], local={3}'.format(
+            POWERCONSUL.service,
             ','.join(POWERCONSUL.CLUSTER.nodes.active),
             ','.join(POWERCONSUL.CLUSTER.nodes.standby)
+            POWERCONSUL.HOST
         ))
 
         # Node is active
