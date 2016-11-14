@@ -29,8 +29,8 @@ class PowerConsulCommon(object):
         self.CONFIG     = self._getConfig()
 
         # PowerHRG environment
-        self.ENV        = self._getEnv()
-        self.ROLE       = self._getRole()
+        self.ENV        = self.getEnv()
+        self.ROLE       = self.getRole()
         self.HOST       = gethostname()
 
         # Consul service
@@ -54,14 +54,14 @@ class PowerConsulCommon(object):
         except Exception as e:
             self.die('Failed to load Consul configuration: {0}'.format(str(e)))
 
-    def _getRole(self, hostname=False):
+    def getRole(self, hostname=False):
         """
         Extract the server role from the hostname.
         """
         hostname = hostname if hostname else gethostname()
         return re.compile(r'(^[^0-9]*)[0-9]*$').sub(r'\g<1>', hostname.replace('{0}-'.format(self.ENV), ''))
 
-    def _getEnv(self, hostname=False):
+    def getEnv(self, hostname=False):
         """
         Extract the PowerHRG environment from the hostname.
         """
