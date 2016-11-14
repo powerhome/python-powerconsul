@@ -73,19 +73,24 @@ class PowerConsul_Action(object):
         """
         Run the state action.
         """
-        proc     = Popen(self._command, stdout=PIPE, stderr=PIPE)
-        out, err = proc.communicate()
+        try:
+            proc     = Popen(self._command, stdout=PIPE, stderr=PIPE)
+            out, err = proc.communicate()
 
-        # Command failed
-        if proc.returncode != 0:
-            POWERCONSUL.LOG.info('ConsulService[{0}].ACTION.run: type={1}, state={2}, error={3}'.format(POWERCONSUL.service, self._type, self._state, str(err).rstrip()))
+            # Command failed
+            if proc.returncode != 0:
+                POWERCONSUL.LOG.info('ConsulService[{0}].ACTION.run: type={1}, state={2}, error={3}'.format(POWERCONSUL.service, self._type, self._state, str(err).rstrip()))
 
-        # Command success
-        else:
-            POWERCONSUL.LOG.info('ConsulService[{0}].ACTION.run: type={1}, state={2}, output={3}'.format(POWERCONSUL.service, self._type, self._state, str(out).rstrip()))
+            # Command success
+            else:
+                POWERCONSUL.LOG.info('ConsulService[{0}].ACTION.run: type={1}, state={2}, output={3}'.format(POWERCONSUL.service, self._type, self._state, str(out).rstrip()))
 
-        # Post action cleanup
-        self._cleanup()
+            # Post action cleanup
+            self._cleanup()
+
+        # Failed to run action
+        except Exception as e:
+            POWERCONSUL.LOG.exception('ConsulService[{0}].ACTION.run: state={1}, error={2}'.format(POWERCONSUL.service, state, str(e)))
 
     @classmethod
     def parse(cls, state):
@@ -112,5 +117,4 @@ class PowerConsul_Action(object):
 
         # Failed to parse service action/object
         except Exception as e:
-            POWERCONSUL.LOG.exception()
-            POWERCONSUL.die('Failed to parse service action: {0}'.format(str(e)))
+            POWERCONSUL.LOG.exception('ConsulService[{0}].ACTION.parse: state={1}, error={2}'.format(POWERCONSUL.service, state, str(e)))
