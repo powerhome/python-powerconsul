@@ -145,7 +145,7 @@ class PowerConsul_Cluster(object):
                 self.hasStandby = False
 
         # Log the bootstrap process results
-        POWERCONSUL.LOG.info('ClusterService[{0}]: active={1}, role={2}, hasStandby={3}'.format(
+        POWERCONSUL.LOG.info('ConsulService[{0}].CLUSTER: active={1}, role={2}, hasStandby={3}'.format(
             POWERCONSUL.service, self.active, self.role, self.hasStandby
         ))
 
@@ -209,8 +209,12 @@ class PowerConsul_Cluster(object):
                 anyPassing = status
 
         # Log the results
-        POWERCONSUL.LOG.info('ConsulService[{0}].activePassing: by_nodes={1}, by_datacenters={2}, any_passing={3}'.format(
-            POWERCONSUL.service, ('yes' if nodes else 'no'), ('yes' if datacenters else 'no'), ('yes' if anyPassing else 'no')
+        POWERCONSUL.LOG.info('ConsulService[{0}].activePassing: by_nodes={1}, by_datacenters={2}, any_passing={3}, role={4}'.format(
+            POWERCONSUL.service,
+            ('yes' if nodes else 'no'),
+            ('yes' if datacenters else 'no'),
+            ('yes' if anyPassing else 'no'),
+            self.role
         ))
 
         # Return the flag that shows in any active services are passing
