@@ -112,4 +112,5 @@ class PowerConsul_Action(object):
 
         # Failed to parse service action/object
         except Exception as e:
+            POWERCONSUL.LOG.exception()
             POWERCONSUL.die('Failed to parse service action: {0}'.format(str(e)))
