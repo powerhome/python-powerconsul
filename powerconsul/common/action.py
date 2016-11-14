@@ -25,12 +25,11 @@ class PowerConsul_Action(object):
         Look for any custom substitution variables.
         """
         for k,v in {
-            'ENV': POWERCONSUL.ENV,
-            'HOST': POWERCONSUL.HOST,
-            'ROLE': POWERCONSUL.ROLE
+            '@ENV': POWERCONSUL.ENV,
+            '@HOST': POWERCONSUL.HOST,
+            '@ROLE': POWERCONSUL.ROLE
         }.iteritems():
-            if '@{0}'.format(k) in cmdStr:
-                cmdStr.replace('@{0}'.format(k), v)
+            cmdStr.replace(k, v)
         return cmdStr
 
     def _bootstrap(self):
