@@ -52,6 +52,18 @@ class Check_Crontab(Check_Base):
                 self.error = 'Failed to find pattern [{0}] in crontab: {1}'.format(self.pattern, self.path)
                 return False
 
+        # Make sure it contains lines other then comments
+        onlyComments = True
+        with open(self.path, 'r') as f:
+            for line in f.readlines():
+                if not line.startswith('#'):
+                    onlyComments = False
+
+        # Crontab only contains comments
+        if onlyComments:
+            self.error = 'Crontab only contains comment lines: {0}'.format(self.path)
+            return False
+
         # Crontab exists and is enabled
         return True
 
@@ -69,13 +81,15 @@ class Check_Crontab(Check_Base):
                     'type': 'crontab',
                     'crontab': self.name,
                     'expects': expects,
-                    'clustered': clustered
+                    'clustered': clustered,
+                    'pattern': self.pattern
                 })
             POWERCONSUL.OUTPUT.critical({
                 'type': 'crontab',
                 'crontab': self.name,
                 'expects': expects,
                 'clustered': clustered,
+                'pattern': self.pattern,
                 'error': self.error
             })
 
@@ -87,12 +101,14 @@ class Check_Crontab(Check_Base):
                     'type': 'crontab',
                     'crontab': self.name,
                     'expects': expects,
-                    'clustered': clustered
+                    'clustered': clustered,
+                    'pattern': self.pattern
                 })
             POWERCONSUL.OUTPUT.critical({
                 'type': 'crontab',
                 'crontab': self.name,
                 'expects': expects,
                 'clustered': clustered,
+                'pattern': self.pattern,
                 'error': 'Crontab is enabled: {0}'.format(self.path)
             })
