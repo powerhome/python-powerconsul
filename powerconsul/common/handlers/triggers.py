@@ -52,107 +52,16 @@ class PowerConsulHandler_Triggers(PowerConsulHandler_Base):
     def __init__(self):
         super(PowerConsulHandler_Triggers, self).__init__(self.id)
 
-        # Service argument required
-        if not POWERCONSUL.ARGS.get('service'):
-            POWERCONSUL.die("Must supply a service JSON object: powerconsul trigger <state> -s <serviceJSON>")
-
-        # Service attributes
-        self.serviceJSON = json.loads(POWERCONSUL.ARGS.get('service'))
-        self.serviceName = self.serviceJSON['ServiceName']
-
-    def _run_action(self, action):
-        """
-        Run the state action.
-        """
-
-        # Trigger method reference
-        if action.startswith('@'):
-            methodName = re.compile(r'^@([^ ]*)[ ].*$').sub(r'\g<1>', action)
-            methodArgs = re.compile(r'^@[^ ]*[ ](.*$)').sub(r'\g<1>', action)
-            methodObj  = POWERCONSUL.ACTIONS.get(methodName)
-
-            # Run the action
-            try:
-                methodObj(**POWERCONSUL.ACTIONS.parseArgs(methodArgs))
-            except Exception as e:
-                return POWERCONSUL.LOG.error('Failed to run @{0}({1}): {2}'.format(methodName, methodArgs, str(e)))
-            POWERCONSUL.LOG.info('Successfully ran @{0}({1})'.format(methodName, methodArgs))
-
-        # Trigger is a script
-        elif action.startswith('#!/bin/bash') or action.startswith('#!/bin/sh'):
-            filename = '/tmp/trigger_{0}.sh'.format(str(uuid4()))
-            with open(filename, 'w') as f:
-                f.write(action)
-            os.chmod(filename, os.stat(filename).st_mode | stat.S_IEXEC)
-
-            # Run the script
-            proc = Popen([filename], stdout=PIPE, stderr=PIPE)
-            out, err = proc.communicate()
-
-            # Command failed
-            if proc.returncode != 0:
-                return POWERCONSUL.LOG.error('Failed to run [{0}]: {1}'.format(filename, str(err).rstrip()))
-            POWERCONSUL.LOG.info('Successfully ran [{0}]: {1}'.format(filename, str(out).rstrip()))
-
-            # Remove the temp file
-            os.remove(filename)
-
-        # Assume a shell command
-        else:
-
-            # Assume action is a shell command
-            proc = Popen(action.split(' '), stdout=PIPE, stderr=PIPE)
-            out, err = proc.communicate()
-
-            # Command failed
-            if proc.returncode != 0:
-                return POWERCONSUL.LOG.error('Failed to run [{0}]: {1}'.format(action, str(err).rstrip()))
-            POWERCONSUL.LOG.info('Successfully ran [{0}]: {1}'.format(action, str(out).rstrip()))
-
-    def _get_action(self, state):
-        """
-        Retrieve an action for a service state trigger.
-        """
-
-        # See if output is JSON
-        try:
-            POWERCONSUL.LOG.info('Parse service output: [{0}]'.format(str(self.serviceJSON['Output'].rstrip())))
-            if isinstance(self.serviceJSON['Output'], dict):
-                return self.serviceJSON['Output']['action']
-            return json.loads(self.serviceJSON['Output'])['action']
-        except:
-            POWERCONSUL.LOG.info('No JSON in service output, attempting KV lookup...')
-
-        # Get from Consul KV store as a fallback
-        index, data = POWERCONSUL.API.kv.get('triggers/{0}/{1}'.format(self.serviceName, state))
-
-        # No action found
-        if not data:
-            return '/usr/bin/env true'
-
-        # Return action string
-        return data['Value']
-
     def critical(self):
         """
         Trigger an action for a service in a critical state.
         """
-
-        # Action to run
-        action = self._get_action('critical')
-        POWERCONSUL.LOG.info('state=critical, service={0}, action={1}'.format(self.serviceName, action))
-
-        # Run the action
-        self._run_action(action)
+        action = POWERCONSUL.ACTION.parse('critical')
+        action.run()
 
     def warning(self):
         """
         Trigger an action for a service in a warning state.
         """
-
-        # Action to run
-        action = self._get_action('warning')
-        POWERCONSUL.LOG.info('state=warning, service={0}, action={1}'.format(self.serviceName, action))
-
-        # Run the action
-        self._run_action(action)
+        action = POWERCONSUL.ACTION.parse('warning')
+        action.run()
