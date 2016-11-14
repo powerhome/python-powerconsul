@@ -79,7 +79,7 @@ class PowerConsul_Action(object):
 
             # Command failed
             if proc.returncode != 0:
-                POWERCONSUL.LOG.info('ConsulService[{0}].ACTION.run: type={1}, state={2}, error={3}'.format(POWERCONSUL.service, self._type, self._state, str(err).rstrip()))
+                POWERCONSUL.LOG.error('ConsulService[{0}].ACTION.run: type={1}, state={2}, error={3}'.format(POWERCONSUL.service, self._type, self._state, str(err).rstrip()))
 
             # Command success
             else:
