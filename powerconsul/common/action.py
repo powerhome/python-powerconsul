@@ -20,6 +20,19 @@ class PowerConsul_Action(object):
         # Bootstrap the action object
         self._bootstrap()
 
+    def _subvars(self, cmdStr):
+        """
+        Look for any custom substitution variables.
+        """
+        for k,v in {
+            'ENV': POWERCONSUL.ENV,
+            'HOST': POWERCONSUL.HOST,
+            'ROLE': POWERCONSUL.ROLE
+        }.iteritems():
+            if '@{0}'.format(k) in cmdStr:
+                cmdStr.replace('@{0}'.format(k), v)
+        return cmdStr
+
     def _bootstrap(self):
         """
         Bootstrap the action object.
@@ -37,7 +50,8 @@ class PowerConsul_Action(object):
 
             # Dump the action script
             with open(self._script, 'w') as f:
-                f.write(self._data)
+                for line in f.readlines():
+                    f.write(self._subvars(line))
             os.chmod(self._script, os.stat(self._script).st_mode | stat.S_IEXEC)
 
             # Define the command
@@ -46,7 +60,7 @@ class PowerConsul_Action(object):
         # Assume direct shell command
         else:
             self._type    = 'command'
-            self._command = self._data.split(' ')
+            self._command = self._subvars(self._data).split(' ')
 
     def _cleanup(self):
         """
