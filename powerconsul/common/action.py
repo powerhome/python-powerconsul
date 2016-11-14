@@ -10,7 +10,7 @@ class PowerConsul_Action(object):
     """
     def __init__(self, actionData):
         self._data    = actionData
-        self._command = ['/usr/bin/env', 'true']
+        self._command = ['/bin/echo', 'noop']
         self._type    = None
 
         # Temporary script
