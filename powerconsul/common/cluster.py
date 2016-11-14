@@ -210,3 +210,7 @@ class PowerConsul_Cluster(object):
         # Return the flag that shows in any active services are passing
         POWERCONSUL.LOG.info('Healthy/passing active {0}s: {1}'.format(self.resource, anyPassing))
         return anyPassing
+
+    @classmethod
+    def bootstrap(cls):
+        POWERCONSUL.CLUSTER = cls()

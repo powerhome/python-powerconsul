@@ -39,13 +39,11 @@ class PowerConsulCommon(object):
         # Logger
         self.LOG        = None
 
-        # Output / collection generators / action handler
+        # Output / collection generators / action handler / cluster object
         self.OUTPUT     = PowerConsul_Output
         self.COLLECTION = PowerConsul_Collection
         self.ACTION     = PowerConsul_Action
-
-        # Cluster object
-        self.CLUSTER    = PowerConsul_Cluster()
+        self.CLUSTER    = PowerConsul_Cluster
 
     def _getConfig(self):
         """
