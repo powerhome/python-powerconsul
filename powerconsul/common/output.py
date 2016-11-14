@@ -10,13 +10,10 @@ class PowerConsul_Output(object):
         try:
             message['state'] = 'passing'
             message['code']  = 0
-
-            if not 'action' in message:
-                message['action'] = '/usr/bin/env true'
-
             stdout.write('{0}\n'.format(json.dumps(message)))
         except:
             stdout.write('{0}\n'.format(message))
+        POWERCONSUL.LOG.info('ConsulService[{0}].ensure->passing: {1}'.format(POWERCONSUL.service, message))
         exit(0)
 
     @staticmethod
@@ -27,13 +24,10 @@ class PowerConsul_Output(object):
         try:
             message['state'] = 'warning'
             message['code']  = 1
-
-            if not 'action' in message:
-                message['action'] = '/usr/bin/env true'
-
             stdout.write('{0}\n'.format(json.dumps(message)))
         except:
             stdout.write('{0}\n'.format(message))
+        POWERCONSUL.LOG.info('ConsulService[{0}].ensure->warning: {1}'.format(POWERCONSUL.service, message))
         exit(1)
 
     @staticmethod
@@ -44,11 +38,8 @@ class PowerConsul_Output(object):
         try:
             message['state'] = 'critical'
             message['code']  = code
-
-            if not 'action' in message:
-                message['action'] = '/usr/bin/env true'
-
             stdout.write('{0}\n'.format(json.dumps(message)))
         except:
             stdout.write('{0}\n'.format(message))
+        POWERCONSUL.LOG.info('ConsulService[{0}].ensure->critical: {1}'.format(POWERCONSUL.service, message))
         exit(code)

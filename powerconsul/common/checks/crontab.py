@@ -62,7 +62,6 @@ class Check_Crontab(Check_Base):
             POWERCONSUL.OUTPUT.critical({
                 'type': 'crontab',
                 'crontab': self.name,
-                'action': self.setAction('critical'),
                 'expects': expects,
                 'clustered': clustered
             })
@@ -80,7 +79,6 @@ class Check_Crontab(Check_Base):
             POWERCONSUL.OUTPUT.critical({
                 'type': 'crontab',
                 'crontab': self.name,
-                'action': '@disableCrontab user={0}'.format(self.name),
                 'expects': expects,
                 'clustered': clustered
             })
