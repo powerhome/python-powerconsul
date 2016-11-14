@@ -36,7 +36,7 @@ class PowerConsulHandler_Watchers(PowerConsulHandler_Base):
     def __init__(self):
         super(PowerConsulHandler_Watchers, self).__init__(self.id)
 
-    def _get_services(self):
+    def _getServices(self):
         """
         Parse incoming Consul JSON data from stdin and extract node services.
         """
@@ -70,7 +70,7 @@ class PowerConsulHandler_Watchers(PowerConsulHandler_Base):
         """
         Private method for putting service states.
         """
-        services = self._get_services()
+        services = self._getServices()
 
         # Trigger the service actions
         for service in services:
@@ -83,12 +83,12 @@ class PowerConsulHandler_Watchers(PowerConsulHandler_Base):
 
     def critical(self):
         """
-        Return a listing of datastores.
+        Watch services in a critical state.
         """
         self._put('critical')
 
     def warning(self):
         """
-        Return a listing of virtual machines.
+        Watch services in a warning state.
         """
         self._put('warning')
