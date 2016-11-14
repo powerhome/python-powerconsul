@@ -92,7 +92,7 @@ class Check_Base(object):
         POWERCONSUL.LOG.info('ConsulService[{0}].ensure.byNodes: active=[{1}], standby=[{2}], local={3}'.format(
             POWERCONSUL.service,
             ','.join(POWERCONSUL.CLUSTER.nodes.active),
-            ','.join(POWERCONSUL.CLUSTER.nodes.standby)
+            ','.join(POWERCONSUL.CLUSTER.nodes.standby),
             POWERCONSUL.HOST
         ))
 
