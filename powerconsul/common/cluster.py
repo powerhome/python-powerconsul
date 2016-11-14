@@ -83,7 +83,7 @@ class PowerConsul_Cluster(object):
 
             # Parse out cluster information
             try:
-                clusterAttrs = json.loads(clusterData['Value'])
+                clusterAttrs = json.loads(clusterData)
             except Exception as e:
                 POWERCONSUL.die('Failed to parse cluster information, must be JSON string: {0}'.format(str(e)))
 
