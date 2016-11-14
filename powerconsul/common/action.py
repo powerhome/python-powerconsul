@@ -86,6 +86,9 @@ class PowerConsul_Action(object):
             # Set Consul service name
             POWERCONSUL.service = serviceJSON['ServiceName']
 
+            # Bootstrap cluster state
+            POWERCONSUL.CLUSTER.bootstrap()
+
             # Return the action object
             return cls(POWERCONSUL.getKV('triggers/{0}/{1}/{2}'.format(
                 POWERCONSUL.service, POWERCONSUL.CLUSTER.role, state
