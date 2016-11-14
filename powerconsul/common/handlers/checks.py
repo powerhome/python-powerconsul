@@ -63,13 +63,13 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
         crontab = Check_Crontab()
 
         """ STANDALONE """
-        if not crontab.clustered:
+        if not POWERCONSUL.CLUSTER.active:
             crontab.ensure()
 
         """ CLUSTERED """
 
         # All services active
-        if crontab.allActive:
+        if not POWERCONSUL.CLUSTER.hasStandby:
             crontab.ensure(clustered=True)
 
         """ ACTIVE/STANDBY """
@@ -83,13 +83,13 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
         service = Check_Service()
 
         """ STANDALONE """
-        if not service.clustered:
+        if not POWERCONSUL.CLUSTER.active:
             service.ensure()
 
         """ CLUSTERED """
 
         # All services active
-        if service.allActive:
+        if not POWERCONSUL.CLUSTER.hasStandby:
             service.ensure(clustered=True)
 
         """ ACTIVE/STANDBY """
