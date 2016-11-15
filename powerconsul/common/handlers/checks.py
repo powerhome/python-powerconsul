@@ -7,6 +7,7 @@ from powerconsul.common.args.options import OPTIONS
 from powerconsul.common.handlers.base import PowerConsulHandler_Base
 from powerconsul.common.checks.service import Check_Service
 from powerconsul.common.checks.crontab import Check_Crontab
+from powerconsul.common.checks.process import Check_Process
 
 class PowerConsulHandler_Checks(PowerConsulHandler_Base):
     """
@@ -46,6 +47,12 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
             "long": "pattern",
             "help": "A pattern to search for in the target resource.",
             "action": "store"
+        },
+        {
+            "short": "n",
+            "long": "nagiosargs",
+            "help": "A string of arguments to pass to a Nagios script.",
+            "action": "store"
         }
     ] + OPTIONS
 
@@ -56,48 +63,48 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
         },
         "crontab": {
             "help": "Check a user's crontab on the system."
+        },
+        "process": {
+            "help": "Check a process running on the system."
         }
     }
 
     def __init__(self):
         super(PowerConsulHandler_Checks, self).__init__(self.id)
 
+    def _check(self, check):
+        """
+        Wrapper method for running checks on a defined check object.
+        """
+
+        """ STANDALONE """
+        if not POWERCONSUL.CLUSTER.active:
+            check.ensure()
+
+        """ CLUSTERED """
+
+        # All resources active
+        if not POWERCONSUL.CLUSTER.hasStandby:
+            check.ensure(clustered=True)
+
+        """ ACTIVE/STANDBY """
+        check.byDatacenter()
+        check.byNodes()
+
+    def process(self):
+        """
+        Check for a running process.
+        """
+        self._check(Check_Process())
+
     def crontab(self):
         """
         Check the crontab for a user.
         """
-        crontab = Check_Crontab()
-
-        """ STANDALONE """
-        if not POWERCONSUL.CLUSTER.active:
-            crontab.ensure()
-
-        """ CLUSTERED """
-
-        # All services active
-        if not POWERCONSUL.CLUSTER.hasStandby:
-            crontab.ensure(clustered=True)
-
-        """ ACTIVE/STANDBY """
-        crontab.byDatacenter()
-        crontab.byNodes()
+        self._check(Check_Crontab())
 
     def service(self):
         """
         Check a service state.
         """
-        service = Check_Service()
-
-        """ STANDALONE """
-        if not POWERCONSUL.CLUSTER.active:
-            service.ensure()
-
-        """ CLUSTERED """
-
-        # All services active
-        if not POWERCONSUL.CLUSTER.hasStandby:
-            service.ensure(clustered=True)
-
-        """ ACTIVE/STANDBY """
-        service.byDatacenter()
-        service.byNodes()
+        self._check(Check_Service())
