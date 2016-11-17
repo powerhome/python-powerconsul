@@ -19,9 +19,9 @@ class Check_Service(Check_Base):
         proc     = Popen(['/usr/bin/env', 'service', self.name, 'status'], stdout=PIPE, stderr=PIPE)
         out, err = proc.communicate()
 
-        # Failed to get status
-        if proc.returncode != 0:
-            POWERCONSUL.die('Failed to determine status for [{0}]: {1}'.format(self.name, err.rstrip()))
+        # Unrecognized service
+        if proc.returncode == 1:
+            POWERCONSUL.die('Failed to determine status for [{0}]: unrecognized service'.format(self.name))
 
         # Service is running
         for rstr in ['is running', 'start/running']:
