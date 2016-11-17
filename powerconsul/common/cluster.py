@@ -217,6 +217,11 @@ class PowerConsul_Cluster(object):
             self.role
         ))
 
+        # No active servers, swap secondary to primary role
+        if not anyPassing and (self.role == self.roles.secondary):
+            POWERCONSUL.LOG.info('ConsulService[{0}].CLUSTER.activePassing: No active servers, role swap [secondary] -> [primary]'.format(POWERCONSUL.service))
+            self.role = self.roles.primary
+        
         # Return the flag that shows in any active services are passing
         return anyPassing
 
