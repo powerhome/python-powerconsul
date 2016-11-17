@@ -85,8 +85,8 @@ class Check_Base(object):
         """
         Ensure a clustered resource state by nodes.
         """
-        if not POWERCONSUL.CLUSTER.nodes:
-            return False
+        if not POWERCONSUL.CLUSTER.nodes.enabled:
+            return None
 
         # Log the service check
         POWERCONSUL.LOG.info('ConsulService[{0}].ensure.byNodes: active=[{1}], standby=[{2}], local={3}'.format(

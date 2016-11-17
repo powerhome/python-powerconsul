@@ -93,6 +93,32 @@ class PowerConsul_Action(object):
             POWERCONSUL.LOG.exception('ConsulService[{0}].ACTION.run: state={1}, error={2}'.format(POWERCONSUL.service, state, str(e)))
 
     @classmethod
+    def checkNodes(cls):
+        """
+        Check if any primary nodes are passing.
+        """
+        if not POWERCONSUL.CLUSTER.nodes.enabled:
+            return None
+
+        # No active nodes passing
+        if not POWERCONSUL.CLUSTER.activePassing(nodes=POWERCONSUL.CLUSTER.nodes.active):
+            POWERCONSUL.LOG.info('ConsulService[{0}].ACTION.checkNodes: No active nodes, role swap [secondary] -> [primary]'.format(POWERCONSUL.service))
+            POWERCONSUL.CLUSTER.role = POWERCONSUL.CLUSTER.roles.primary
+
+    @classmethod
+    def checkDatacenters(cls):
+        """
+        Check if any primary datacenters are passing.
+        """
+        if not POWERCONSUL.CLUSTER.datacenters.enabled:
+            return None
+
+        # No active datacenters passing
+        if not POWERCONSUL.CLUSTER.activePassing(datacenters=[POWERCONSUL.CLUSTER.datacenters.active]):
+            POWERCONSUL.LOG.info('ConsulService[{0}].ACTION.checkNodes: No active datacenters, role swap [secondary] -> [primary]'.format(POWERCONSUL.service))
+            POWERCONSUL.CLUSTER.role = POWERCONSUL.CLUSTER.roles.primary
+
+    @classmethod
     def parse(cls, state):
         """
         Parse an action stored in the KV database.
@@ -109,6 +135,11 @@ class PowerConsul_Action(object):
 
             # Bootstrap cluster state
             POWERCONSUL.CLUSTER.bootstrap()
+
+            # If secondary, make sure primaries are passing
+            if POWERCONSUL.CLUSTER.role == POWERCONSUL.CLUSTER.roles.secondary:
+                cls.checkDatacenters()
+                cls.checkNodes()
 
             # Return the action object
             return cls(POWERCONSUL.getKV('triggers/{0}/{1}/{2}'.format(
