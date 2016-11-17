@@ -92,8 +92,6 @@ class PowerConsul_Action(object):
         except Exception as e:
             POWERCONSUL.LOG.exception('ConsulService[{0}].ACTION.run: state={1}, error={2}'.format(POWERCONSUL.service, state, str(e)))
 
-
-
     @classmethod
     def checkNodes(cls):
         """
