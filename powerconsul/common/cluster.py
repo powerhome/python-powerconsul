@@ -66,6 +66,69 @@ class PowerConsul_Cluster(object):
         # Return the datacenters collection
         return self._setGroup(datacenters, 'datacenters')
 
+    def _process(self, clusterAttrs):
+        """
+        Process cluster data.
+        """
+        POWERCONSUL.LOG.info('ConsulService[{0}].CLUSTER._process: clusterAttrs={1}'.format(POWERCONSUL.service, clusterAttrs))
+
+        # Cluster by node
+        self.nodes = self._setNodes({
+            'active': clusterAttrs.get('active_nodes'),
+            'standby': clusterAttrs.get('standby_nodes')
+        })
+
+        # Cluster by datacenter
+        self.datacenters = self._setDatacenters({
+            'active': clusterAttrs.get('active_datacenter'),
+            'standby': clusterAttrs.get('standby_datacenter')
+        })
+
+        # Cannot cluster by both
+        if self.datacenters.enabled and self.nodes.enabled:
+            POWERCONSUL.die('Active/standby datacenters and nodes options are mutually exclusive!')
+
+        # Datacenter validation
+        if self.datacenters.enabled:
+
+            # Supplied datacenters must be valid
+            for dcType in ['active', 'standby', 'local']:
+                if not getattr(self.datacenters, dcType) in self.datacenters.all:
+                    POWERCONSUL.die('{0} datacenter [{1}] not valid, available datacenters: {2}'.format(
+                        dcType.capitalize(),
+                        getattr(self.datacenters, dcType),
+                        json.dumps(self.datacenters.all)
+                    ))
+
+            # Local server's datacenter must match either active or standby
+            if not self.datacenters.local in [self.datacenters.active, self.datacenters.standby]:
+                POWERCONSUL.die('Local server\'s datacenter [{0}] must be either the active [{1}] or standby [{2}] datacenter!'.format(
+                    self.datacenters.local,
+                    self.datacenters.active,
+                    self.datacenters.standby
+                ))
+
+            # Set the cluster role
+            self.role = self.roles.primary if (self.datacenters.local in self.datacenters.active) else self.roles.secondary
+
+        # Nodes validation
+        if self.nodes.enabled:
+
+            # Local node must be in either active or standby nodes list
+            if not self.nodes.local in (self.nodes.active + self.nodes.standby):
+                POWERCONSUL.die('Local node address [{0}] must be in either active {1} or standby {2} node list!'.format(
+                    self.nodes.local,
+                    json.dumps(self.nodes.active),
+                    json.dumps(self.nodes.standby)
+                ))
+
+            # Set the cluster role
+            self.role = self.roles.primary if (self.nodes.local in self.nodes.active) else self.roles.secondary
+
+        # Assume all active in cluster / no standby nodes
+        if not self.datacenters.enabled and not self.nodes.enabled:
+            self.hasStandby = False
+
     def _bootstrap(self):
         """
         Bootstrap the cluster object.
@@ -87,62 +150,21 @@ class PowerConsul_Cluster(object):
             except Exception as e:
                 POWERCONSUL.die('Failed to parse cluster information, must be JSON string: {0}'.format(str(e)))
 
-            # Cluster by node
-            self.nodes = self._setNodes({
-                'active': clusterAttrs.get('active_nodes'),
-                'standby': clusterAttrs.get('standby_nodes')
-            })
+            # If performing more fine grained filter based on role
+            if 'roles' in clusterAttrs:
 
-            # Cluster by datacenter
-            self.datacenters = self._setDatacenters({
-                'active': clusterAttrs.get('active_datacenter'),
-                'standby': clusterAttrs.get('standby_datacenter')
-            })
+                # Server role must exist in data
+                if not POWERCONSUL.ROLE in clusterAttrs['roles']:
+                    POWERCONSUL.die('Could not find node role [{0}] in cluster roles: {1}'.format(POWERCONSUL.ROLE, clusterAttrs['roles']))
+                POWERCONSUL.LOG.info('ConsulService[{0}].CLUSTER.roleKV: Using nested roles for: {1}'.format(POWERCONSUL.service, POWERCONSUL.ROLE))
 
-            # Cannot cluster by both
-            if self.datacenters.enabled and self.nodes.enabled:
-                POWERCONSUL.die('Active/standby datacenters and nodes options are mutually exclusive!')
+                # Process cluster data
+                self._process(clusterAttrs['roles'][POWERCONSUL.ROLE])
 
-            # Datacenter validation
-            if self.datacenters.enabled:
-
-                # Supplied datacenters must be valid
-                for dcType in ['active', 'standby', 'local']:
-                    if not getattr(self.datacenters, dcType) in self.datacenters.all:
-                        POWERCONSUL.die('{0} datacenter [{1}] not valid, available datacenters: {2}'.format(
-                            dcType.capitalize(),
-                            getattr(self.datacenters, dcType),
-                            json.dumps(self.datacenters.all)
-                        ))
-
-                # Local server's datacenter must match either active or standby
-                if not self.datacenters.local in [self.datacenters.active, self.datacenters.standby]:
-                    POWERCONSUL.die('Local server\'s datacenter [{0}] must be either the active [{1}] or standby [{2}] datacenter!'.format(
-                        self.datacenters.local,
-                        self.datacenters.active,
-                        self.datacenters.standby
-                    ))
-
-                # Set the cluster role
-                self.role = self.roles.primary if (self.datacenters.local in self.datacenters.active) else self.roles.secondary
-
-            # Nodes validation
-            if self.nodes.enabled:
-
-                # Local node must be in either active or standby nodes list
-                if not self.nodes.local in (self.nodes.active + self.nodes.standby):
-                    POWERCONSUL.die('Local node address [{0}] must be in either active {1} or standby {2} node list!'.format(
-                        self.nodes.local,
-                        json.dumps(self.nodes.active),
-                        json.dumps(self.nodes.standby)
-                    ))
-
-                # Set the cluster role
-                self.role = self.roles.primary if (self.nodes.local in self.nodes.active) else self.roles.secondary
-
-            # Assume all active in cluster / no standby nodes
-            if not self.datacenters.enabled and not self.nodes.enabled:
-                self.hasStandby = False
+            # Top level filtering
+            else:
+                POWERCONSUL.LOG.info('ConsulService[{0}].CLUSTER.roleKV: Using top level roles for: {1}'.format(POWERCONSUL.service, POWERCONSUL.ROLE))
+                self._process(clusterAttrs)
 
         # Log the bootstrap process results
         POWERCONSUL.LOG.info('ConsulService[{0}].CLUSTER: active={1}, role={2}, hasStandby={3}'.format(

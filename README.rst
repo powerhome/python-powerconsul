@@ -86,6 +86,26 @@ Nodes in the active list will be classified in the ``primary`` role.
 Nodes in the secondary list will be classified in the ``secondary``
 role.
 
+Nested Roles
+''''''''''''
+
+It may be desireable to further nest by roles. A good example is Talkbox for the production environment. The same Talkbox service is applied to both roles, but the roles are seperate clusters.
+
+.. code:: json
+
+    {
+        "roles": {
+            "talkbox-dialer": {
+                "active_nodes": ["production-talkbox-dialer"],
+                "standby_nodes": ["production-talkbox-dialer2"]
+             },
+            "talkbox-inbound": {
+                "active_nodes": ["production-talkbox-inbound"],
+                "standby_nodes": ["production-talkbox-inbound2"]
+             }
+        }
+    }
+
 Standalone
 ''''''''''
 
