@@ -125,6 +125,8 @@ class PowerConsul_Action(object):
         """
         try:
 
+            import powerconsul.common.logger as logger
+
             # Parse service JSON
             serviceJSON = json.loads(POWERCONSUL.ARGS.get('service',
                 required='Must supply a service JSON object: powerconsul trigger <state> -s <serviceJSON>'
@@ -132,6 +134,9 @@ class PowerConsul_Action(object):
 
             # Set Consul service name
             POWERCONSUL.service = serviceJSON['ServiceName']
+
+            # Setup the logger
+            POWERCONSUL.LOG = logger.create('trigger', '/var/log/powerconsul/trigger/{0}.{1}.log'.format(POWERCONSUL.service, state))
 
             # Bootstrap cluster state
             POWERCONSUL.CLUSTER.bootstrap()

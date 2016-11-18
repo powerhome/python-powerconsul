@@ -1,5 +1,7 @@
 import json
 
+import powerconsul.common.logger as logger
+
 class Check_Base(object):
     """
     Base class for a checked resource.
@@ -10,6 +12,11 @@ class Check_Base(object):
 
         # Parse the Consul service name and bootstrap cluster status
         POWERCONSUL.service = POWERCONSUL.ARGS.get('consulservice', required='Must supply a Consul servicename: powerconsul check <resource> -S <serviceName>')
+
+        # Setup the logger
+        POWERCONSUL.LOG = logger.create('check', '/var/log/powerconsul/check/{0}.{1}.log'.format(self.resource, POWERCONSUL.service))
+
+        # Bootstrap the cluster
         POWERCONSUL.CLUSTER.bootstrap()
 
     def setDNS(self, state):

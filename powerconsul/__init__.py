@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
-__version__ = '0.3.5'
+__version__ = '0.3.6'
 
 import json
 from sys import argv, exit
-
-# Power Consul modules
-import powerconsul.common.logger as logger
 
 class PowerConsul(object):
     """
@@ -23,9 +20,6 @@ class PowerConsul(object):
             isnot = None,
             error = 'Cannot load unsupported command: {0}'.format(argv[0]),
             code  = 1)
-
-        # Setup the logger
-        POWERCONSUL.LOG = logger.create(argv[0])
 
         # Run the target command
         return command().run()

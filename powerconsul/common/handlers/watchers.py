@@ -4,6 +4,7 @@ from select import select
 from subprocess import Popen
 
 # Power Consul modules
+import powerconsul.common.logger as logger
 from powerconsul.common.args.options import OPTIONS
 from powerconsul.common.handlers.base import PowerConsulHandler_Base
 
@@ -35,6 +36,9 @@ class PowerConsulHandler_Watchers(PowerConsulHandler_Base):
 
     def __init__(self):
         super(PowerConsulHandler_Watchers, self).__init__(self.id)
+
+        # Setup the logger
+        POWERCONSUL.LOG = logger.create('watch', '/var/log/powerconsul/watch/{0}.log'.format(self.command))
 
     def _getServices(self):
         """

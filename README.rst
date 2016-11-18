@@ -199,3 +199,24 @@ state:
     cd /to/some/place
     echo "Horray!"
     /usr/bin/env do --something
+
+Logging
+~~~~~~~~
+
+Logs are broken down by action (check/watch/trigger) and further by state/service (triggers) or resource/service (checks):
+
+.. code:: text
+
+    user@hostname:~# cd /var/log/powerconsul
+    user@hostname:/var/log/powerconsul# find . -type f -name *.log
+    ./trigger/sshd.warning.log
+    ./trigger/puppetAgent.critical.log
+    ./trigger/ntpd.warning.log
+    ./trigger/sssd.critical.log
+    ./trigger/sssd.warning.log
+    ./watch/warning.log
+    ./watch/critical.log
+    ./check/service.sshd.log
+    ./check/service.ntpd.log
+    ./check/service.sssd.log
+    ./check/service.puppetAgent.log
