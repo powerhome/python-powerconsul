@@ -24,7 +24,7 @@ class Check_Service(Check_Base):
             POWERCONSUL.die('Failed to determine status for [{0}]: unrecognized service'.format(self.name))
 
         # Service is running
-        for rstr in ['is running', 'start/running']:
+        for rstr in ['is running', 'start/running', 'currently running']:
             if rstr in out.rstrip():
                 return True
         return False
