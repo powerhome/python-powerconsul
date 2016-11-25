@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-__version__ = '0.3.7'
+__version__ = '0.3.8'
 
 import json
 from sys import argv, exit
