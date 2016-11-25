@@ -38,6 +38,7 @@ class Check_Service(Check_Base):
         # Service should be running
         if expects == True:
             if running:
+                self.setDNS(True)
                 POWERCONSUL.OUTPUT.passing({
                     'type': 'service',
                     'service': self.name,
@@ -54,6 +55,7 @@ class Check_Service(Check_Base):
         # Service should be stopped
         if expects == False:
             if not running:
+                self.setDNS(False)
                 POWERCONSUL.OUTPUT.passing({
                     'type': 'service',
                     'service': self.name,
