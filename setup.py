@@ -21,6 +21,9 @@ setup(
             'powerconsul = powerconsul.__main__:main'
         ]
     },
+    test_suite       = "tests",
+    tests_require    = ['pytest'],
+    setup_requires   = ['pytest-runner'],
     keywords         = 'ha infrastructure shell service consul',
     classifiers      = [
         'Development Status :: 3 - Alpha',
