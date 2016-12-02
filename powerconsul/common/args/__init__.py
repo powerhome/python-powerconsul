@@ -16,8 +16,8 @@ def get_base_commands():
     commands = {
         "help": "Get help for a specific command: powerconsul help <command>"
     }
-    for handler, cls in PowerConsulHandlers().all().iteritems():
-        commands[handler] = cls.desc['summary']
+    for handler, klass in iterdict(PowerConsulHandlers().all()):
+        commands[handler] = klass.desc['summary']
     return commands
 
 class PowerConsulArgs_Base(object):
@@ -55,7 +55,7 @@ class PowerConsulArg_Commands(object):
         Return the handlers help prompt
         """
         cmds_str = ''
-        for cmd, help in self._cmds.iteritems():
+        for cmd, help in iterdict(self._cmds):
             if isinstance(help, str):
                 cmds_str += "> {0}: {1}\n".format(cmd, help)
             else:

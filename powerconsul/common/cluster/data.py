@@ -44,7 +44,7 @@ class PowerConsul_ClusterData(object):
             hostFilter = None
 
             # Load filters
-            for f,c in self._data['filter'].iteritems():
+            for f,c in iterdict(self._data['filter']):
                 if re.compile(f).match(POWERCONSUL.HOST):
                     hostFilter = f
                     self._data  = c

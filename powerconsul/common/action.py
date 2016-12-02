@@ -24,7 +24,7 @@ class PowerConsul_Action(object):
         """
         Look for any custom substitution variables.
         """
-        for k,v in POWERCONSUL.CONFIG.get('local', 'subVars', default={}).__dict__.iteritems():
+        for k,v in iterdict(POWERCONSUL.CONFIG.get('local', 'subVars', default={}).__dict__):
             cmdStr = cmdStr.replace('@{0}'.format(k), v)
         return cmdStr
 

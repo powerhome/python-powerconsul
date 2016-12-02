@@ -45,7 +45,7 @@ class Logger:
         # Make sure the log directory exists
         log_dir = dirname(log_file)
         if not isdir(log_dir):
-            makedirs(log_dir, 0755)
+            makedirs(log_dir, 0o755)
 
         # Set the logger module name
         logger = getLogger(name)

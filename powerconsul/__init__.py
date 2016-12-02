@@ -34,9 +34,6 @@ class PowerConsul(object):
         Public method for running Power Consul utilities.
         """
 
-        # Must be run as root
-        POWERCONSUL.ensure_root()
-
         # Supported handlers
         handlers = POWERCONSUL.ARGS.handlers()
 

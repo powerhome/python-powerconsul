@@ -1,4 +1,8 @@
-import __builtin__
+try:
+    import __builtin__ as builtins
+except:
+    import builtins
+
 import re
 import json
 from os import geteuid
@@ -113,13 +117,6 @@ class PowerConsulCommon(object):
         self.HANDLERS = import_class('PowerConsulHandlers', 'powerconsul.common.handlers')
         self.ARGS     = import_class('PowerConsulArgs', 'powerconsul.common.args', init=False)
 
-    def ensure_root(self):
-        """
-        Make sure the current process is being run as root or with sudo privileges.
-        """
-        if not geteuid() == 0:
-            self.die('Power Consul must be run as root or with sudo privileges')
-
     def extract_attr(self, obj, attrs):
         """
         Extract an attribute from an object by string search filter.
@@ -218,15 +215,31 @@ def import_class(cls, mod, init=True, ensure=True, args=[], kwargs={}):
         print_exc()
         exit(1)
 
+def iterateDict(dictObject):
+    """
+    Wrapper method for iterating a dictionary for Python 2/3 compatibility.
+    """
+
+    # Python 2.x
+    if hasattr(dictObject, 'iteritems'):
+        return dictObject.iteritems()
+
+    # Python 3.x
+    else:
+        return dictObject.items()
+
 def init_powerconsul():
     """
     Method for initializing Power Consul commons.
     """
-    if hasattr(__builtin__, 'POWERCONSUL'):
+    if hasattr(builtins, 'POWERCONSUL'):
         raise Exception('Power Consul commons already intialized')
 
+    # Iterate dictionary method for Python2/3 compatibility
+    setattr(builtins, 'iterdict', iterateDict)
+
     # Set up Power Consul commons
-    setattr(__builtin__, 'POWERCONSUL', PowerConsulCommon())
+    setattr(builtins, 'POWERCONSUL', PowerConsulCommon())
 
     # Post initialization bootstrap method
     POWERCONSUL.bootstrap()
