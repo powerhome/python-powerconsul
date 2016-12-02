@@ -38,7 +38,7 @@ class PowerConsulHandler_Watchers(PowerConsulHandler_Base):
         super(PowerConsulHandler_Watchers, self).__init__(self.id)
 
         # Setup the logger
-        POWERCONSUL.LOG = logger.create('watch', '/var/log/powerconsul/watch/{0}.log'.format(self.command))
+        POWERCONSUL.LOG = logger.create('watch', log_file='/var/log/powerconsul/watch/{0}.log'.format(self.command))
 
     def _getServices(self):
         """
@@ -47,7 +47,7 @@ class PowerConsulHandler_Watchers(PowerConsulHandler_Base):
 
         # Must have stdin data
         if not select([stdin,],[],[],0.0)[0]:
-            POWERCONSUL.die('Command "powerconsul watch" requires data from STDIN!')
+            POWERCONSUL.LOG.critical('Command "powerconsul watch" requires data from STDIN!', method='_gerServices', die=True)
 
         try:
             consulInput = json.loads(''.join(stdin.readlines()))
@@ -61,7 +61,7 @@ class PowerConsulHandler_Watchers(PowerConsulHandler_Base):
 
         # Failed to retrieve stdin
         except Exception as e:
-            POWERCONSUL.die('Failed to parse Consul input: {0}'.format(str(e)))
+            POWERCONSUL.LOG.exception('Failed to get Consul services: {0}'.format(str(e)), method='_getServices', die=True)
 
     def _trigger(self, state, service):
         """
@@ -78,12 +78,15 @@ class PowerConsulHandler_Watchers(PowerConsulHandler_Base):
 
         # Trigger the service actions
         for service in services:
+            try:
 
-            # Service output is empty, so assume this is initial startup
-            if service['Output'] == '' or not service['Output']:
-                continue
-            POWERCONSUL.LOG.info('ConsulService[{0}].trigger: state={1}'.format(service['ServiceID'], state))
-            self._trigger(state, service)
+                # Service output is empty, so assume this is initial startup
+                if service['Output'] == '' or not service['Output']:
+                    continue
+                POWERCONSUL.LOG.info('service={0}, state={1}, output=\'{2}\''.format(service['ServiceID'], state, service['Output'].rstrip()), method='trigger._put')
+                self._trigger(state, service)
+            except Exception as e:
+                POWERCONSUL.LOG.exception('Trigger failed: service={0}, state={1}, error={2}'.format(service['ServiceID'], state, str(e)), method='trigger._put', die=True)
 
     def critical(self):
         """

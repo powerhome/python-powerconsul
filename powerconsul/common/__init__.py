@@ -6,13 +6,14 @@ from consul import Consul
 from socket import gethostname
 from traceback import print_exc
 from importlib import import_module
-from sys import stderr, exit, exc_info, stdout
+from sys import stderr, exit, stdout
 
 # Power Consul modules
 from powerconsul.common.output import PowerConsul_Output
 from powerconsul.common.collection import PowerConsul_Collection
 from powerconsul.common.action import PowerConsul_Action
 from powerconsul.common.cluster import PowerConsul_Cluster
+from powerconsul.common.config import PowerConsul_Config
 
 class PowerConsulCommon(object):
     """
@@ -21,52 +22,30 @@ class PowerConsulCommon(object):
     def __init__(self):
 
         # Power Consul Extended Objects
-        self.HANDLERS   = None
-        self.ARGS       = None
+        self.HANDLERS    = None
+        self.ARGS        = None
 
         # Consul API / configuration
-        self.API        = Consul()
-        self.CONFIG     = self._getConfig()
+        self.API         = Consul()
+        self.CONFIG      = PowerConsul_Config
 
-        # PowerHRG environment
-        self.ENV        = self.getEnv()
-        self.ROLE       = self.getRole()
-        self.HOST       = gethostname()
+        # Store the host name
+        self.HOST        = gethostname()
 
         # Consul service
-        self.service    = None
+        self.service     = None
 
         # Logger
-        self.LOG        = None
+        self.LOG         = None
 
         # Output / collection generators / action handler / cluster object
-        self.OUTPUT     = PowerConsul_Output
-        self.COLLECTION = PowerConsul_Collection
-        self.ACTION     = PowerConsul_Action
-        self.CLUSTER    = PowerConsul_Cluster
+        self.OUTPUT      = PowerConsul_Output
+        self.COLLECTION  = PowerConsul_Collection
+        self.ACTION      = PowerConsul_Action
+        self.CLUSTER     = PowerConsul_Cluster
 
-    def _getConfig(self):
-        """
-        Parse the main Consul agent configuration.
-        """
-        try:
-            return json.loads(open('/etc/consul/config.json', 'r').read())
-        except Exception as e:
-            self.die('Failed to load Consul configuration: {0}'.format(str(e)))
-
-    def getRole(self, hostname=False):
-        """
-        Extract the server role from the hostname.
-        """
-        hostname = hostname if hostname else gethostname()
-        return re.compile(r'(^[^0-9]*)[0-9]*$').sub(r'\g<1>', hostname.replace('{0}-'.format(self.ENV), ''))
-
-    def getEnv(self, hostname=False):
-        """
-        Extract the PowerHRG environment from the hostname.
-        """
-        hostname = hostname if hostname else gethostname()
-        return re.compile(r'(^[^-]*)-.*$').sub(r'\g<1>', hostname)
+        # Consul attribute shortcuts
+        self.datacenters = self.API.catalog.datacenters()
 
     def getKV(self, key, default=None):
         """
@@ -76,6 +55,56 @@ class PowerConsulCommon(object):
 
         # Return any value if found or default
         return default if not data else data['Value']
+
+    def getServiceHealth(self, **kwargs):
+        """
+        Get service health from Consul API.
+        """
+        services    = []
+        service     = kwargs.get('service', self.service)
+        datacenters = kwargs.get('datacenters')
+        srvFilter   = POWERCONSUL.CONFIG.get('local', 'serviceFilter')
+
+        # Generate a list of Consul services from the API
+        if datacenters:
+            for dc in datacenters:
+                services = services + self.API.health.service(service, dc=dc)[1]
+        else:
+            services = self.API.health.service(service)[1]
+
+        # Mapped services
+        mappedServices = []
+
+        # Process raw services
+        for srv in services:
+            node   = srv['Node']['Node']
+            checks = srv['Checks'][1]
+
+            # Service regex filter
+            if srvFilter and not re.compile(srvFilter).match(node):
+                POWERCONSUL.LOG.debug('skip -> {0} != \'{1}\''.format(node, srvFilter), method='getServiceHealth')
+                continue
+
+            # Map the service
+            mappedServices.append({
+                'node': node,
+                'status': checks['Status']
+            })
+
+        # Log service map
+        POWERCONSUL.LOG.info('mappedServices={0}'.format(json.dumps(mappedServices)), method='getServiceHealth')
+
+        # Return mapped services
+        return mappedServices
+
+    def parseJSON(self, data, error='Failed to parse JSON'):
+        """
+        Parse a JSON string.
+        """
+        try:
+            return json.loads(data)
+        except Exception as e:
+            POWERCONSUL.die('{0}: {1}'.format(error, str(e)))
 
     def bootstrap(self):
         """

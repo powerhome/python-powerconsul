@@ -21,7 +21,7 @@ class Check_Service(Check_Base):
 
         # Unrecognized service
         if proc.returncode == 1:
-            POWERCONSUL.die('Failed to determine status for [{0}]: unrecognized service'.format(self.name))
+            POWERCONSUL.LOG.critical('Failed to determine status for [{0}]: unrecognized service'.format(self.name), method='running', die=True)
 
         # Service is running
         for rstr in ['is running', 'start/running', 'currently running']:

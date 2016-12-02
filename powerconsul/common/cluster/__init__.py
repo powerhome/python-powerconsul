@@ -1,4 +1,7 @@
+import re
 import json
+
+from powerconsul.common.cluster.data import PowerConsul_ClusterData
 
 class PowerConsul_Cluster(object):
     """
@@ -16,6 +19,9 @@ class PowerConsul_Cluster(object):
 
         # Does the cluster have standby nodes
         self.hasStandby  = True
+
+        # Cluster data key / cluster data
+        self.data        = PowerConsul_ClusterData()
 
         # Cluster roles
         self.roles       = POWERCONSUL.COLLECTION.create({
@@ -39,7 +45,7 @@ class PowerConsul_Cluster(object):
 
         # Active/standby attributes required if either are set
         if not group['active'] or not group['standby']:
-            POWERCONSUL.die('Must specify both active/standby {0} attributes'.format(label))
+            POWERCONSUL.LOG.critical('Must specify both active/standby {0} attributes'.format(label), method='cluster._setGroup', die=True)
 
         # Enable the group
         group['enabled'] = True
@@ -60,8 +66,8 @@ class PowerConsul_Cluster(object):
         """
         Set cluster datacenters.
         """
-        datacenters['local'] = POWERCONSUL.CONFIG['datacenter']
-        datacenters['all']   = POWERCONSUL.API.catalog.datacenters()
+        datacenters['local'] = POWERCONSUL.CONFIG.get('consul', 'datacenter')
+        datacenters['all']   = POWERCONSUL.datacenters
 
         # Return the datacenters collection
         return self._setGroup(datacenters, 'datacenters')
@@ -70,7 +76,7 @@ class PowerConsul_Cluster(object):
         """
         Process cluster data.
         """
-        POWERCONSUL.LOG.info('ConsulService[{0}].CLUSTER._process: clusterAttrs={1}'.format(POWERCONSUL.service, clusterAttrs))
+        POWERCONSUL.LOG.info('clusterAttributes={0}'.format(json.dumps(clusterAttrs)), method='cluster._process')
 
         # Cluster by node
         self.nodes = self._setNodes({
@@ -86,7 +92,7 @@ class PowerConsul_Cluster(object):
 
         # Cannot cluster by both
         if self.datacenters.enabled and self.nodes.enabled:
-            POWERCONSUL.die('Active/standby datacenters and nodes options are mutually exclusive!')
+            POWERCONSUL.LOG.critical('Active/standby datacenters and nodes options are mutually exclusive!', method='cluster._process', die=True)
 
         # Datacenter validation
         if self.datacenters.enabled:
@@ -94,19 +100,19 @@ class PowerConsul_Cluster(object):
             # Supplied datacenters must be valid
             for dcType in ['active', 'standby', 'local']:
                 if not getattr(self.datacenters, dcType) in self.datacenters.all:
-                    POWERCONSUL.die('{0} datacenter [{1}] not valid, available datacenters: {2}'.format(
+                    POWERCONSUL.LOG.critical('{0} datacenter [{1}] not valid, available datacenters: {2}'.format(
                         dcType.capitalize(),
                         getattr(self.datacenters, dcType),
                         json.dumps(self.datacenters.all)
-                    ))
+                    ), method='cluster._process', die=True)
 
             # Local server's datacenter must match either active or standby
             if not self.datacenters.local in [self.datacenters.active, self.datacenters.standby]:
-                POWERCONSUL.die('Local server\'s datacenter [{0}] must be either the active [{1}] or standby [{2}] datacenter!'.format(
+                POWERCONSUL.LOG.critical('Local server\'s datacenter [{0}] must be either the active [{1}] or standby [{2}] datacenter!'.format(
                     self.datacenters.local,
                     self.datacenters.active,
                     self.datacenters.standby
-                ))
+                ), method='cluster._process', die=True)
 
             # Set the cluster role
             self.role = self.roles.primary if (self.datacenters.local in self.datacenters.active) else self.roles.secondary
@@ -116,11 +122,11 @@ class PowerConsul_Cluster(object):
 
             # Local node must be in either active or standby nodes list
             if not self.nodes.local in (self.nodes.active + self.nodes.standby):
-                POWERCONSUL.die('Local node address [{0}] must be in either active {1} or standby {2} node list!'.format(
+                POWERCONSUL.LOG.critical('Local node address [{0}] must be in either active {1} or standby {2} node list!'.format(
                     self.nodes.local,
                     json.dumps(self.nodes.active),
                     json.dumps(self.nodes.standby)
-                ))
+                ), method='cluster._process', die=True)
 
             # Set the cluster role
             self.role = self.roles.primary if (self.nodes.local in self.nodes.active) else self.roles.secondary
@@ -133,10 +139,9 @@ class PowerConsul_Cluster(object):
         """
         Bootstrap the cluster object.
         """
-        clusterData = POWERCONSUL.getKV('cluster/{0}/{1}'.format(POWERCONSUL.ENV, POWERCONSUL.service))
 
         # Service is not clustered
-        if not clusterData:
+        if not self.data.defined:
             self.active = False
             self.role   = self.roles.standalone
 
@@ -144,64 +149,37 @@ class PowerConsul_Cluster(object):
         else:
             self.active = True
 
-            # Parse out cluster information
-            try:
-                clusterAttrs = json.loads(clusterData)
-            except Exception as e:
-                POWERCONSUL.die('Failed to parse cluster information, must be JSON string: {0}'.format(str(e)))
-
-            # If performing more fine grained filter based on role
-            if 'roles' in clusterAttrs:
-
-                # Server role must exist in data
-                if not POWERCONSUL.ROLE in clusterAttrs['roles']:
-                    POWERCONSUL.die('Could not find node role [{0}] in cluster roles: {1}'.format(POWERCONSUL.ROLE, clusterAttrs['roles']))
-                POWERCONSUL.LOG.info('ConsulService[{0}].CLUSTER.roleKV: Using nested roles for: {1}'.format(POWERCONSUL.service, POWERCONSUL.ROLE))
-
-                # Process cluster data
-                self._process(clusterAttrs['roles'][POWERCONSUL.ROLE])
-
-            # Top level filtering
-            else:
-                POWERCONSUL.LOG.info('ConsulService[{0}].CLUSTER.roleKV: Using top level roles for: {1}'.format(POWERCONSUL.service, POWERCONSUL.ROLE))
-                self._process(clusterAttrs)
+            # Process cluster data
+            self._process(self.data.get())
 
         # Log the bootstrap process results
-        POWERCONSUL.LOG.info('ConsulService[{0}].CLUSTER: active={1}, role={2}, hasStandby={3}'.format(
-            POWERCONSUL.service, self.active, self.role, self.hasStandby
-        ))
+        POWERCONSUL.LOG.info('active={0}, role={1}, hasStandby={2}'.format(self.active, self.role, self.hasStandby), method='cluster._bootstrap')
+
+    def _checkStatus(self, node, status):
+        """
+        Return a boolean depending on the status string.
+        """
+        POWERCONSUL.LOG.info('node={0}, status={1}'.format(node, status), method='cluster._checkStatus')
+        return True if status == 'passing' else False
 
     def checkService(self, datacenters=None, nodes=None):
         """
         Check the state of a Consul service.
         """
         statusList = []
-        services   = []
-
-        # Generate a list of Consul services from the API
-        if datacenters:
-            for dc in datacenters:
-                dcServices = POWERCONSUL.API.health.service(POWERCONSUL.service, dc=dc)[1]
-                services = services + dcServices
-        else:
-            services = POWERCONSUL.API.health.service(POWERCONSUL.service)[1]
+        services   = POWERCONSUL.getServiceHealth(datacenters=datacenters)
 
         # Process services
         for service in services:
-
-            # Node / environment / role
-            node     = service['Node']['Node']
-            nodeEnv  = POWERCONSUL.getEnv(hostname=node)
-            nodeRole = POWERCONSUL.getRole(hostname=node)
-            checks   = service['Checks'][1]
+            node   = service['node']
+            status = service['status']
 
             # If provided a node filter list
             if nodes and not node in nodes:
                 continue
 
-            # Node must be in the same environment/role
-            if (nodeEnv == POWERCONSUL.ENV) and (nodeRole == POWERCONSUL.ROLE):
-                statusList.append(True if checks['Status'] == 'passing' else False)
+            # Store the status for the node
+            statusList.append(self._checkStatus(node, status))
 
         # Return the status list
         return statusList
@@ -214,7 +192,7 @@ class PowerConsul_Cluster(object):
 
         # Can only filter by datacenters or nodes
         if datacenters and nodes:
-            POWERCONSUL.die('Cannot check for active/passing services by datacenters/nodes at the same time!')
+            POWERCONSUL.LOG.critical('Cannot check for active/passing services by datacenters/nodes at the same time!', method='cluster.activePassing', die=True)
 
         # By datacenter
         if datacenters:
@@ -231,17 +209,19 @@ class PowerConsul_Cluster(object):
                 anyPassing = status
 
         # Log the results
-        POWERCONSUL.LOG.info('ConsulService[{0}].CLUSTER.activePassing: by_nodes={1}, by_datacenters={2}, any_passing={3}, role={4}'.format(
-            POWERCONSUL.service,
+        POWERCONSUL.LOG.info('by_nodes={0}, by_datacenters={1}, any_passing={2}, role={3}'.format(
             ('yes' if nodes else 'no'),
             ('yes' if datacenters else 'no'),
             ('yes' if anyPassing else 'no'),
             self.role
-        ))
+        ), method='cluster.activePassing')
 
         # Return the flag that shows in any active services are passing
         return anyPassing
 
     @classmethod
     def bootstrap(cls):
-        POWERCONSUL.CLUSTER = cls()
+        try:
+            POWERCONSUL.CLUSTER = cls()
+        except Exception as e:
+            POWERCONSUL.LOG.exception('Failed to bootstrap cluster state: {0}'.format(str(e)), method='cluster.bootstrap', die=True)

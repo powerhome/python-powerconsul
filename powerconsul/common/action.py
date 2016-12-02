@@ -24,12 +24,8 @@ class PowerConsul_Action(object):
         """
         Look for any custom substitution variables.
         """
-        for k,v in {
-            '@ENV': POWERCONSUL.ENV,
-            '@HOST': POWERCONSUL.HOST,
-            '@ROLE': POWERCONSUL.ROLE
-        }.iteritems():
-            cmdStr = cmdStr.replace(k, v)
+        for k,v in POWERCONSUL.CONFIG.get('local', 'subVars', default={}).__dict__.iteritems():
+            cmdStr = cmdStr.replace('@{0}'.format(k), v)
         return cmdStr
 
     def _bootstrap(self):
@@ -79,18 +75,18 @@ class PowerConsul_Action(object):
 
             # Command failed
             if proc.returncode != 0:
-                POWERCONSUL.LOG.error('ConsulService[{0}].ACTION.run: type={1}, state={2}, error={3}'.format(POWERCONSUL.service, self._type, self._state, str(err).rstrip()))
+                POWERCONSUL.LOG.error('type={0}, state={1}, error={2}'.format(self._type, self._state, str(err).rstrip()), method='action.run')
 
             # Command success
             else:
-                POWERCONSUL.LOG.info('ConsulService[{0}].ACTION.run: type={1}, state={2}, output={3}'.format(POWERCONSUL.service, self._type, self._state, str(out).rstrip()))
+                POWERCONSUL.LOG.info('type={0}, state={1}, output={2}'.format(self._type, self._state, str(out).rstrip()), method='action.run')
 
             # Post action cleanup
             self._cleanup()
 
         # Failed to run action
         except Exception as e:
-            POWERCONSUL.LOG.exception('ConsulService[{0}].ACTION.run: state={1}, error={2}'.format(POWERCONSUL.service, state, str(e)))
+            POWERCONSUL.LOG.exception('state={0}, error={1}'.format(state, str(e)), method='action.run', die=True)
 
     @classmethod
     def checkNodes(cls):
@@ -102,7 +98,7 @@ class PowerConsul_Action(object):
 
         # No active nodes passing
         if not POWERCONSUL.CLUSTER.activePassing(nodes=POWERCONSUL.CLUSTER.nodes.active):
-            POWERCONSUL.LOG.info('ConsulService[{0}].ACTION.checkNodes: No active nodes, role swap [secondary] -> [primary]'.format(POWERCONSUL.service))
+            POWERCONSUL.LOG.info('No active/healthy nodes, set role: primary', method='action.checkNodes')
             POWERCONSUL.CLUSTER.role = POWERCONSUL.CLUSTER.roles.primary
 
     @classmethod
@@ -115,7 +111,7 @@ class PowerConsul_Action(object):
 
         # No active datacenters passing
         if not POWERCONSUL.CLUSTER.activePassing(datacenters=[POWERCONSUL.CLUSTER.datacenters.active]):
-            POWERCONSUL.LOG.info('ConsulService[{0}].ACTION.checkNodes: No active datacenters, role swap [secondary] -> [primary]'.format(POWERCONSUL.service))
+            POWERCONSUL.LOG.info('No active/healthy datacenters, set role: primary', method='action.checkDatacenters')
             POWERCONSUL.CLUSTER.role = POWERCONSUL.CLUSTER.roles.primary
 
     @classmethod
@@ -136,7 +132,8 @@ class PowerConsul_Action(object):
             POWERCONSUL.service = serviceJSON['ServiceName']
 
             # Setup the logger
-            POWERCONSUL.LOG = logger.create('trigger', '/var/log/powerconsul/trigger/{0}.{1}.log'.format(POWERCONSUL.service, state))
+            POWERCONSUL.LOG = logger.create('trigger', service=POWERCONSUL.service, log_file='/var/log/powerconsul/trigger/{0}.{1}.log'.format(POWERCONSUL.service, state))
+            POWERCONSUL.LOG.info('=' * 20)
 
             # Bootstrap cluster state
             POWERCONSUL.CLUSTER.bootstrap()
@@ -153,4 +150,4 @@ class PowerConsul_Action(object):
 
         # Failed to parse service action/object
         except Exception as e:
-            POWERCONSUL.LOG.exception('ConsulService[{0}].ACTION.parse: state={1}, error={2}'.format(POWERCONSUL.service, state, str(e)))
+            POWERCONSUL.LOG.exception('state={0}, error={1}'.format(state, str(e)), method='action.parse', die=True)

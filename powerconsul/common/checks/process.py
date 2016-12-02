@@ -25,7 +25,7 @@ class Check_Process(Check_Base):
 
         # The Nagios script must exist
         if not path.isfile(self.nagiosScript):
-            POWERCONSUL.die('Unable to locate Nagios process check script: {0}'.format(self.nagiosScript))
+            POWERCONSUL.LOG.critical('Unable to location Nagios process check script: {0}'.format(self.nagiosScript), method='checkNagios', die=True)
 
         # Execute the health check
         proc     = Popen([self.nagiosScript] + self.nagiosArgs.split(' '), stdout=PIPE, stderr=PIPE)
@@ -33,7 +33,7 @@ class Check_Process(Check_Base):
 
         # Failed to run Nagios check (invalid syntax)
         if proc.returncode == 3:
-            POWERCONSUL.die('Failed to run Nagios check [{0}]: {1}'.format(self.nagiosScript, err.rstrip()))
+            POWERCONSUL.LOG.critical('Failed to run Nagios check [{0}]: {1}'.format(self.nagiosScript, err.rstrip()), method='checkNagios', die=True)
 
         # Return the exit code and output
         return proc.returncode, out.rstrip()

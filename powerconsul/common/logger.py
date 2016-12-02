@@ -64,8 +64,48 @@ class Logger:
         # Return the logger
         return getLogger(name)
 
-def create(name, log_file='/var/log/powerconsul.log', log_level='INFO'):
+class PowerConsul_Logger(object):
+    """
+    Class wrapper for doing preformatted logging.
+    """
+    def __init__(self, name, service, log_file, log_level):
+        self.logger  = Logger.construct(name, log_file, log_level)
+        self.service = service
+
+    def _format(self, message, **kwargs):
+        if self.service:
+            methodStr = '.{0}'.format(kwargs.get('method')) if ('method' in kwargs) else ''
+            return 'ConsulService[{0}]{1}: {2}'.format(self.service, methodStr, message)
+        return message
+
+    def info(self, message, **kwargs):
+        self.logger.info(self._format(message, **kwargs))
+
+    def debug(self, message, **kwargs):
+        self.logger.debug(self._format(message, **kwargs))
+
+    def error(self, message, **kwargs):
+        self.logger.error(self._format(message, **kwargs))
+
+    def warning(self, message, **kwargs):
+        self.logger.warning(self._format(message, **kwargs))
+
+    def critical(self, message, **kwargs):
+        self.logger.critical(self._format(message, **kwargs))
+
+        # Optionally abort
+        if kwargs.get('die'):
+            POWERCONSUL.die(message)
+
+    def exception(self, message, **kwargs):
+        self.logger.exception(self._format(message, **kwargs))
+
+        # Optionally abort
+        if kwargs.get('die'):
+            POWERCONSUL.die(message)
+
+def create(name, service=None, log_file='/var/log/powerconsul.log', log_level='INFO'):
     """
     Factory method used to construct and return a Python logging object.
     """
-    return Logger.construct('powerconsul.{0}'.format(name), log_file, log_level)
+    return PowerConsul_Logger('powerconsul.{0}'.format(name), service, log_file, log_level)

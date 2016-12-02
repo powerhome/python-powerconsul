@@ -24,7 +24,8 @@ class PowerConsulHandlers(object):
         return {
             "watch": import_class('PowerConsulHandler_Watchers', 'powerconsul.common.handlers.watchers', init=False),
             "trigger": import_class('PowerConsulHandler_Triggers', 'powerconsul.common.handlers.triggers', init=False),
-            "check": import_class('PowerConsulHandler_Checks', 'powerconsul.common.handlers.checks', init=False)
+            "check": import_class('PowerConsulHandler_Checks', 'powerconsul.common.handlers.checks', init=False),
+            "config": import_class('PowerConsulHandler_Config', 'powerconsul.common.handlers.config', init=False)
         }
 
     def get_args(self, handler=None):

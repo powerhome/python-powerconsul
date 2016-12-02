@@ -13,7 +13,7 @@ class PowerConsul_Output(object):
             stdout.write('{0}\n'.format(json.dumps(message)))
         except:
             stdout.write('{0}\n'.format(message))
-        POWERCONSUL.LOG.info('ConsulService[{0}].ensure->passing: {1}'.format(POWERCONSUL.service, message))
+        POWERCONSUL.LOG.info(message, method='ensure.passing')
         exit(0)
 
     @staticmethod
@@ -27,7 +27,7 @@ class PowerConsul_Output(object):
             stdout.write('{0}\n'.format(json.dumps(message)))
         except:
             stdout.write('{0}\n'.format(message))
-        POWERCONSUL.LOG.info('ConsulService[{0}].ensure->warning: {1}'.format(POWERCONSUL.service, message))
+        POWERCONSUL.LOG.warning(message, method='ensure.warning')
         exit(1)
 
     @staticmethod
@@ -41,5 +41,5 @@ class PowerConsul_Output(object):
             stdout.write('{0}\n'.format(json.dumps(message)))
         except:
             stdout.write('{0}\n'.format(message))
-        POWERCONSUL.LOG.info('ConsulService[{0}].ensure->critical: {1}'.format(POWERCONSUL.service, message))
+        POWERCONSUL.LOG.critical(message, method='ensure.critical')
         exit(code)

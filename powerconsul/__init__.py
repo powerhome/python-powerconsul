@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-__version__ = '0.3.9'
+__version__ = '0.4.0'
 
 import json
 from sys import argv, exit
@@ -20,6 +20,10 @@ class PowerConsul(object):
             isnot = None,
             error = 'Cannot load unsupported command: {0}'.format(argv[0]),
             code  = 1)
+
+        # If not running the config handler
+        if argv[0] != 'config':
+            POWERCONSUL.CONFIG.parse()
 
         # Run the target command
         return command().run()

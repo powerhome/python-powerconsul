@@ -14,7 +14,8 @@ class Check_Base(object):
         POWERCONSUL.service = POWERCONSUL.ARGS.get('consulservice', required='Must supply a Consul servicename: powerconsul check <resource> -S <serviceName>')
 
         # Setup the logger
-        POWERCONSUL.LOG = logger.create('check', '/var/log/powerconsul/check/{0}.{1}.log'.format(self.resource, POWERCONSUL.service))
+        POWERCONSUL.LOG = logger.create('check', service=POWERCONSUL.service, log_file='/var/log/powerconsul/check/{0}.{1}.log'.format(self.resource, POWERCONSUL.service))
+        POWERCONSUL.LOG.info('=' * 20)
 
         # Bootstrap the cluster
         POWERCONSUL.CLUSTER.bootstrap()
@@ -41,10 +42,7 @@ class Check_Base(object):
 
             # Re-register the service
             if applyChanges:
-                POWERCONSUL.LOG.info('ConsulService[{0}].setDNS: enabled={1}'.format(
-                    POWERCONSUL.service,
-                    ('no' if ('nodns' in serviceObj['Tags']) else 'yes')
-                ))
+                POWERCONSUL.LOG.info('enabled={0}'.format(('no' if ('nodns' in serviceObj['Tags']) else 'yes')), method='setDNS')
 
                 # Make the API request
                 POWERCONSUL.API.agent.service.register(POWERCONSUL.service,
@@ -57,7 +55,7 @@ class Check_Base(object):
 
         # Failed to update DNS tag
         except Exception as e:
-            POWERCONSUL.LOG.error('Failed to update DNS tag: {0}'.format(str(e)))
+            POWERCONSUL.LOG.error('Failed to update DNS tag: {0}'.format(str(e)), method='setDNS')
 
     def byDatacenter(self):
         """
@@ -67,12 +65,9 @@ class Check_Base(object):
             return None
 
         # Log the service check
-        POWERCONSUL.LOG.info('ConsulService[{0}].ensure.byDatacenter: active=[{1}], standby=[{2}], local={3}'.format(
-            POWERCONSUL.service,
-            POWERCONSUL.CLUSTER.datacenters.active,
-            POWERCONSUL.CLUSTER.datacenters.standby,
-            POWERCONSUL.CLUSTER.datacenters.local
-        ))
+        POWERCONSUL.LOG.info('active=[{0}], standby=[{1}], local={2}'.format(
+            POWERCONSUL.CLUSTER.datacenters.active, POWERCONSUL.CLUSTER.datacenters.standby, POWERCONSUL.CLUSTER.datacenters.local
+        ), method='ensure.byDatacenter')
 
         # Node is active
         if POWERCONSUL.CLUSTER.datacenters.local == POWERCONSUL.CLUSTER.datacenters.active:
@@ -96,12 +91,9 @@ class Check_Base(object):
             return None
 
         # Log the service check
-        POWERCONSUL.LOG.info('ConsulService[{0}].ensure.byNodes: active=[{1}], standby=[{2}], local={3}'.format(
-            POWERCONSUL.service,
-            ','.join(POWERCONSUL.CLUSTER.nodes.active),
-            ','.join(POWERCONSUL.CLUSTER.nodes.standby),
-            POWERCONSUL.HOST
-        ))
+        POWERCONSUL.LOG.info('active=[{0}], standby=[{1}], local={2}'.format(
+            ','.join(POWERCONSUL.CLUSTER.nodes.active), ','.join(POWERCONSUL.CLUSTER.nodes.standby), POWERCONSUL.HOST
+        ), method='ensure.byNodes')
 
         # Node is active
         if POWERCONSUL.CLUSTER.nodes.local in POWERCONSUL.CLUSTER.nodes.active:
