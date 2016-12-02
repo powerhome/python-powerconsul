@@ -1,7 +1,6 @@
 import re
 import json
 from collections import namedtuple
-from types import InstanceType, ClassType
 
 def merge_dict(a, b, path=None):
         """
@@ -40,31 +39,9 @@ class PowerConsul_Collection(object):
         """
         self.class_name = self.__class__.__name__
         if init_data:
-            if isinstance(init_data, dict):
-
-                # Check if creating a collection from a Django QueryDict
-                if re.match(r'^<QueryDict.*$', str(init_data)):
-                    self.collection = self._convert_query_dict(init_data)
-                else:
-                    self.collection = init_data
-            else:
-                self.collection = {}
+            self.collection = init_data
         else:
             self.collection = {}
-
-    def _convert_query_dict(self, query_dict):
-        """
-        Helper method used to convert a Django QueryDict to a standard
-        Python dictionary.
-
-        :param query_dict: The Django QueryDict object to convert
-        :type query_dict: QueryDict
-        """
-        raw_converted = dict(query_dict.iterlists())
-        converted = {}
-        for key, value in raw_converted.iteritems():
-            converted[key] = value[0]
-        return converted
 
     def map(self, map_dict={}):
         """
@@ -76,34 +53,7 @@ class PowerConsul_Collection(object):
         if not map_dict:
             return None
         else:
-
-            # Check if mapping a Django QueryDict
-            if re.match(r'^<QueryDict.*$', str(map_dict)):
-                self.collection = merge_dict(self._convert_query_dict(map_dict), self.collection)
-            else:
-                self.collection = merge_dict(map_dict, self.collection)
-
-    def isclass(self, obj, cls):
-        """
-        Helper method to test if an object is either a new or old style class.
-
-        :param obj: The object to test
-        :type obj: *
-        :rtype: boolean
-        """
-
-        # Test for an old style class
-        if (type(obj) is InstanceType):
-            return True
-
-        # Test for a class object
-        if (re.match(r'^<powerconsul\..[^>]*>$', str(obj))):
-            return True
-
-        # Test for a new style class
-        if ((hasattr(obj, '__class__')) and (re.match(r'^<class \'powerconsul\..*\.{0}\'>$'.format(cls), repr(obj.__class__)))):
-            return True
-        return False
+            self.collection = merge_dict(map_dict, self.collection)
 
     def get(self):
         """
@@ -122,19 +72,8 @@ class PowerConsul_Collection(object):
             """
             return namedtuple(self.class_name, d.keys())(*d.values())
 
-        # Check if creating a collection of classes
-        class_collection = False
-        for key, obj in self.collection.iteritems():
-            if self.isclass(self.collection[key], key):
-                class_collection = True
-                break
-
         # Map the data to an object and return
-        if class_collection:
-            return namedtuple(self.class_name, self.collection.keys())(*self.collection.values())
-        else:
-            data = json.dumps(self.collection)
-            return json.loads(data, object_hook=obj_mapper)
+        return json.loads(json.dumps(self.collection), object_hook=obj_mapper)
 
     @classmethod
     def create(cls, data):
