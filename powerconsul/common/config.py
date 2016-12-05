@@ -5,7 +5,6 @@ from os.path import expanduser, isfile
 from powerconsul.common.collection import PowerConsul_Collection
 
 # Local / Consul agent configuration
-CONSUL_CONFIG = '/etc/consul/config.json'
 LOCAL_CONFIG  = expanduser('~/.powerconsul.conf')
 
 class PowerConsul_Config(object):
@@ -13,8 +12,8 @@ class PowerConsul_Config(object):
     Configuration object for Power Consul interface.
     """
     def __init__(self):
-        self.CONSUL     = self._getConsulConfig()
         self.LOCAL      = self._getLocalConfig()
+        self.CONSUL     = self._getConsulConfig()
 
     def get(self, configType, key, default=None):
         """
@@ -26,12 +25,13 @@ class PowerConsul_Config(object):
         }
         return getattr(configs[configType], key, default)
 
-    def _getConsulConfig(self):
+    def _getConsulConfig(self, config='/etc/consul/config.json'):
         """
         Load and return the Consul agent configuration.
         """
+        configFile = self.get('local', 'consulConfig', config)
         try:
-            return PowerConsul_Collection.create(json.loads(open(CONSUL_CONFIG, 'r').read()))
+            return PowerConsul_Collection.create(json.loads(open(configFile, 'r').read()))
         except Exception as e:
             POWERCONSUL.die('Failed to parse Consul agent configuration: {0}'.format(str(e)))
 

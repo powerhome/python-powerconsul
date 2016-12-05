@@ -23,11 +23,12 @@ class PowerConsulCommon(object):
     """
     Common class object for shared methods and attributes.
     """
-    def __init__(self):
+    def __init__(self, args):
 
         # Power Consul Extended Objects
         self.HANDLERS    = None
         self.ARGS        = None
+        self._args       = args
 
         # Consul API / configuration
         self.API         = Consul()
@@ -228,7 +229,7 @@ def iterateDict(dictObject):
     else:
         return dictObject.items()
 
-def init_powerconsul():
+def init_powerconsul(args):
     """
     Method for initializing Power Consul commons.
     """
@@ -239,7 +240,7 @@ def init_powerconsul():
     setattr(builtins, 'iterdict', iterateDict)
 
     # Set up Power Consul commons
-    setattr(builtins, 'POWERCONSUL', PowerConsulCommon())
+    setattr(builtins, 'POWERCONSUL', PowerConsulCommon(args))
 
     # Post initialization bootstrap method
     POWERCONSUL.bootstrap()

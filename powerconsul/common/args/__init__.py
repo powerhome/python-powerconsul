@@ -1,6 +1,6 @@
 import re
 from os import environ
-from sys import argv, exit
+from sys import exit
 from json import loads as json_loads
 from argparse import ArgumentParser, RawTextHelpFormatter
 
@@ -173,13 +173,13 @@ class PowerConsulArgs(object):
             self.parser.add_argument(arg.short, arg.long, help=arg.help, action=arg.action)
 
         # No parameters given
-        if len(argv) == 1:
+        if len(POWERCONSUL._args) == 1:
             self.help()
             exit(0)
 
         # Parse base command options
-        argv.pop(0)
-        self.container = vars(self.parser.parse_args(argv))
+        POWERCONSUL._args.pop(0)
+        self.container = vars(self.parser.parse_args(POWERCONSUL._args))
 
     def help(self):
         """

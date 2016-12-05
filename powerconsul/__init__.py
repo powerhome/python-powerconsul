@@ -2,7 +2,7 @@
 __version__ = '0.4.0'
 
 import json
-from sys import argv, exit
+from sys import exit
 
 class PowerConsul(object):
     """
@@ -13,16 +13,16 @@ class PowerConsul(object):
         """
         Private method for loading subcommand handler.
         """
-        argv.pop(0)
+        POWERCONSUL._args.pop(0)
 
         # Load the command handler
-        command = POWERCONSUL.ensure(POWERCONSUL.HANDLERS.get(argv[0]),
+        command = POWERCONSUL.ensure(POWERCONSUL.HANDLERS.get(POWERCONSUL._args[0]),
             isnot = None,
-            error = 'Cannot load unsupported command: {0}'.format(argv[0]),
+            error = 'Cannot load unsupported command: {0}'.format(POWERCONSUL._args[0]),
             code  = 1)
 
         # If not running the config handler
-        if argv[0] != 'config':
+        if POWERCONSUL._args[0] != 'config':
             POWERCONSUL.CONFIG.parse()
 
         # Run the target command
@@ -38,8 +38,8 @@ class PowerConsul(object):
         handlers = POWERCONSUL.ARGS.handlers()
 
         # Pass to handler
-        if (len(argv) > 1) and (argv[1] in handlers):
-            cls._run_handler(argv[1])
+        if (len(POWERCONSUL._args) > 1) and (POWERCONSUL._args[1] in handlers):
+            cls._run_handler(POWERCONSUL._args[1])
 
         # Base commands
         else:
