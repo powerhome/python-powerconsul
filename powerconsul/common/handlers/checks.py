@@ -19,7 +19,7 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
     desc    = {
         "title": "Power Consul Triggers",
         "summary": "Trigger events on service state changes.",
-        "usage": "powerconsul trigger [action] [options]"
+        "usage": "powerconsul check [action] [options]"
     }
 
     # Supported options

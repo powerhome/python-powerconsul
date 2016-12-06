@@ -19,8 +19,8 @@ RUN pip2 install --upgrade pip
 RUN pip3 install --upgrade pip
 
 # Download/install Python 3.4
-RUN mkdir -p /src && cd /src && curl https://www.python.org/ftp/python/3.4.5/Python-3.4.5.tgz > Python-3.4.5.tgz && tar xzf Python-3.4.5.tgz
-RUN cd /src/Python-3.4.5 && ./configure && make && make install
+#RUN mkdir -p /src && cd /src && curl https://www.python.org/ftp/python/3.4.5/Python-3.4.5.tgz > Python-3.4.5.tgz && tar xzf Python-3.4.5.tgz
+#RUN cd /src/Python-3.4.5 && ./configure && make && make install
 
 # PowerConsul / Consul configuration
 RUN cp /src/python-powerconsul/docs/example.consul.conf /consul/config/config.json
@@ -28,7 +28,7 @@ RUN cp /src/python-powerconsul/docs/example.powerconsul.conf /root/.powerconsul.
 RUN chown consul:consul /consul/config/config.json
 
 # Reload Consul
-RUN consul reload
+#RUN consul reload
 
 # Run build commands
 #RUN cd /src/python-powerconsul && tox
