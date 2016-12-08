@@ -49,6 +49,7 @@ class Check_Process(Check_Base):
 
             # Passing
             if code == 0:
+                self.setDNS(True)
                 POWERCONSUL.OUTPUT.passing({
                     'type': 'process',
                     'nagiosScript': self.nagiosScript,
@@ -85,6 +86,7 @@ class Check_Process(Check_Base):
 
             # Passing (Nagios check == critical)
             if code == 2:
+                self.setDNS(False)
                 POWERCONSUL.OUTPUT.passing({
                     'type': 'process',
                     'nagiosScript': self.nagiosScript,

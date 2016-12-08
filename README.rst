@@ -8,6 +8,10 @@ work with a server's Consul agent:
 -  Watching service health/state changes
 -  Triggering actions based on service state changes
 
+Consul and Puppet
+~~~~~~~~~~~~~~~~~
+For organizations that use Puppet https://github.com/solarkennedy/puppet-consul is an excellent solution for deploying both Consul masters and agents.
+
 Limitations/Issues
 ~~~~~~~~~~~~~~~~~~
 The following is a summary of known issues and limitations:
@@ -269,6 +273,51 @@ state:
     cd /to/some/place
     echo "Horray!"
     /usr/bin/env do --something
+
+Prepared Queries / DNS Tagging
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This package has some built in functionality to manage prepared query tags for services in an active/standby configuration. As passing is inverted for standby servers (not running/healthy = passing), the ``only_passing`` tag for prepared queries is not sufficient. To work around this issue, Power Consul will update (as long as you enable tag overrides) passing/standby service tags with the string ``nodns`` which will allow you to have better control over a cluster of services. You can use additional tags (such as the environment, i.e. ``production``) to do further service filtering.
+
+See (https://www.consul.io/docs/agent/http/query.html) for more information on prepared queries.
+
+Example Service Definition
+''''''''''''''''''''''''''
+The following is an example service definition deployed via Puppet which will enable tag overrides:
+
+.. code:: yaml
+
+    consul::services:
+      exampleApache2Service:
+        enable_tag_override: true
+        address: "somehostname.domain.com"
+        checks:
+          - script: "/usr/bin/env powerconsul check service -s apache2 -S exampleApache2Service"
+            interval: 10s
+        tags:
+          - "apache"
+          - "web"
+          - "production"
+
+Example Prepared Query
+''''''''''''''''''''''
+The following is an example prepared query which leverages tag overrides and the ``nodns`` tag. This will only return services in a passing state, and services without the ``nodns`` tag, which would be a standby service that is stopped, but shown as being in a passing state (as we expect). This example is also deployed via Puppet:
+
+.. code:: yaml
+
+    profiles::consul::prepared_queries:
+      'production-web':
+        'ensure': 'present'
+        'service_name': 'exampleApache2Service'
+        'service_failover_n': 1
+        'service_only_passing': true
+        'service_failover_dcs':
+          - 'dc1'
+          - 'dc2'
+        'service_tags':
+          - 'production'
+          - '!nodns'
+        'ttl': 10
 
 Logging
 ~~~~~~~~
