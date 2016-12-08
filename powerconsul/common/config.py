@@ -21,7 +21,7 @@ class PowerConsul_Config(object):
         """
         configs = {
             'local': self.LOCAL,
-            'consul': self.CONSUL
+            'consul': getattr(self, 'CONSUL', None)
         }
         return getattr(configs[configType], key, default)
 

@@ -28,7 +28,7 @@ RUN cp /src/python-powerconsul/docs/example.powerconsul.conf /root/.powerconsul.
 RUN chown consul:consul /consul/config/config.json
 
 # Reload Consul
-#RUN consul reload
+RUN consul reload
 
 # Run build commands
 #RUN cd /src/python-powerconsul && tox
