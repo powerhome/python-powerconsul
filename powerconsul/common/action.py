@@ -69,6 +69,12 @@ class PowerConsul_Action(object):
         """
         Run the state action.
         """
+
+        # Is this triggered configured for noop?
+        if POWERCONSUL.service in POWERCONSUL.CONFIG.get('local', 'noopTriggers', default=[]):
+            POWERCONSUL.LOG.info('Service trigger(s) configured as noop. Skipping...')
+            return True
+
         try:
             proc     = Popen(self._command, stdout=PIPE, stderr=PIPE)
             out, err = proc.communicate()
