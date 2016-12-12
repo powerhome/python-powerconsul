@@ -1,34 +1,45 @@
 
-# Consul Docker image
-FROM consul:0.7.1
+# Ubuntu Docker image
+FROM ubuntu:14.04
 
-# Required packages
-RUN apk add --update git python python-dev py-pip build-base python3 file bash
-RUN pip install virtualenv python-consul tox mock
-RUN rm -rf /var/cache/apk/*
+# Update apt cache
+RUN apt-get update
+
+# Python software properties
+RUN apt-get install software-properties-common -y
+
+# Python 3.5 PPA
+RUN add-apt-repository ppa:fkrull/deadsnakes -y
+
+# Update apt cache
+RUN apt-get update
+
+# Install required packages
+RUN apt-get install -y wget python2.7 python-pip python3-pip python3.5 git unzip
 
 # Add source code
 RUN mkdir -p /src
 RUN cd /src && git clone -b feature/unit_tests https://github.com/powerhome/python-powerconsul.git
 
-# Install Python3.5
-RUN apk add --update python3
+# Download and install Consul
+RUN cd /src && wget https://releases.hashicorp.com/consul/0.7.0/consul_0.7.0_linux_amd64.zip
+RUN cd /src && unzip consul_0.7.0_linux_amd64.zip && mv consul /usr/local/bin/. && rm -f consul_0.7.0_linux_amd64.zip
 
-# Upgrade PIP
-RUN pip2 install --upgrade pip
-RUN pip3 install --upgrade pip
+# Consul directories and files
+RUN mkdir -p /etc/consul /opt/consul /var/run/consul
+RUN cp /src/python-powerconsul/docs/example.consul.conf /etc/consul/config.json && chmod 660 /etc/consul/config.json
 
-# Download/install Python 3.4
-#RUN mkdir -p /src && cd /src && curl https://www.python.org/ftp/python/3.4.5/Python-3.4.5.tgz > Python-3.4.5.tgz && tar xzf Python-3.4.5.tgz
-#RUN cd /src/Python-3.4.5 && ./configure && make && make install
+# Install service scripts
+RUN cp /src/python-powerconsul/docs/init/consul.conf /etc/init/consul.conf && chmod 444 /etc/init/consul.conf
+RUN ln -s /lib/init/upstart-job /etc/init.d/consul
 
 # PowerConsul / Consul configuration
-RUN cp /src/python-powerconsul/docs/example.consul.conf /consul/config/config.json
-RUN cp /src/python-powerconsul/docs/example.powerconsul.conf /root/.powerconsul.conf
-RUN chown consul:consul /consul/config/config.json
+#RUN cp /src/python-powerconsul/docs/example.consul.conf /consul/config/config.json
+#RUN cp /src/python-powerconsul/docs/example.powerconsul.conf /root/.powerconsul.conf
+#RUN chown consul:consul /consul/config/config.json
 
 # Reload Consul
-RUN consul reload
+#RUN consul reload
 
 # Run build commands
 #RUN cd /src/python-powerconsul && tox
