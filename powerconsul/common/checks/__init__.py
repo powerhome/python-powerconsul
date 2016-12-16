@@ -1,4 +1,5 @@
 import json
+from subprocess import Popen, PIPE
 
 import powerconsul.common.logger as logger
 
@@ -10,6 +11,9 @@ class Check_Base(object):
         self.resource       = resource
         self.name           = None
 
+        # Process string filter to indicate all is well
+        self.procStr        = POWERCONSUL.ARGS.get('procstr')
+
         # Parse the Consul service name and bootstrap cluster status
         POWERCONSUL.service = POWERCONSUL.ARGS.get('consulservice', required='Must supply a Consul servicename: powerconsul check <resource> -S <serviceName>')
 
@@ -19,6 +23,23 @@ class Check_Base(object):
 
         # Bootstrap the cluster
         POWERCONSUL.CLUSTER.bootstrap()
+
+    def checkProcStr(self):
+        """
+        Look for a user supplied string in the process table. If found, assume the check should pass.
+        """
+        if self.procStr:
+            pstab = Popen(['ps', 'aux'], stdout=PIPE)
+            out   = pstab.communicate()
+
+            # Look for the process string in the process table
+            for line in out:
+
+                # Filter string found, return OK
+                if self.procStr in line:
+                    POWERCONSUL.LOG.info('Discovered process filter string: [{0}]'.format(self.procStr), method='checkProcStr')
+                    return True
+        return False
 
     def setDNS(self, state):
         """

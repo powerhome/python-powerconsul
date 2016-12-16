@@ -53,6 +53,12 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
             "long": "nagiosargs",
             "help": "A string of arguments to pass to a Nagios script.",
             "action": "store"
+        },
+        {
+            "short": "P",
+            "long": "procstr",
+            "help": "Look for a string in the process table to indicate and expected task during a critical check.",
+            "action": "store"
         }
     ] + OPTIONS
 
