@@ -33,11 +33,15 @@ class Check_Base(object):
             out   = pstab.communicate()
 
             # Look for the process string in the process table
-            for line in out:
+            for line in out[0].split('\n'):
+
+                # Ignore powerconsul process table entries
+                if 'powerconsul' in line:
+                    continue
 
                 # Filter string found, return OK
                 if self.procStr in line:
-                    POWERCONSUL.LOG.info('Discovered process filter string: [{0}]'.format(self.procStr), method='checkProcStr')
+                    POWERCONSUL.LOG.info('Discovered process filter string: [{0}], set state -> passing'.format(self.procStr), method='checkProcStr')
                     return True
         return False
 
