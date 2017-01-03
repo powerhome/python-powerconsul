@@ -57,7 +57,13 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
         {
             "short": "P",
             "long": "procstr",
-            "help": "Look for a string in the process table to indicate and expected task during a critical check.",
+            "help": "Look for a string in the process table to indicate an expected task during a critical check.",
+            "action": "store"
+        },
+        {
+            "short": "R",
+            "long": "procre",
+            "help": "Look for a regular expression in the process table to indicate an expected task during a critical check.",
             "action": "store"
         }
     ] + OPTIONS

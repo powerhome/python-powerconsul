@@ -1,4 +1,5 @@
 import json
+import re
 from subprocess import Popen, PIPE
 
 import powerconsul.common.logger as logger
@@ -11,8 +12,9 @@ class Check_Base(object):
         self.resource       = resource
         self.name           = None
 
-        # Process string filter to indicate all is well
+        # Process/regex string filter to indicate all is well
         self.procStr        = POWERCONSUL.ARGS.get('procstr')
+        self.procRe         = POWERCONSUL.ARGS.get('procre')
 
         # Parse the Consul service name and bootstrap cluster status
         POWERCONSUL.service = POWERCONSUL.ARGS.get('consulservice', required='Must supply a Consul servicename: powerconsul check <resource> -S <serviceName>')
@@ -24,13 +26,16 @@ class Check_Base(object):
         # Bootstrap the cluster
         POWERCONSUL.CLUSTER.bootstrap()
 
-    def checkProcStr(self):
+    def checkPS(self):
         """
         Look for a user supplied string in the process table. If found, assume the check should pass.
         """
-        if self.procStr:
+        if self.procStr or self.procRe:
             pstab = Popen(['ps', 'aux'], stdout=PIPE)
             out   = pstab.communicate()
+
+            # Process regex
+            regex = None if not self.procRe else re.compile(self.procRe)
 
             # Look for the process string in the process table
             for line in out[0].split('\n'):
@@ -39,9 +44,14 @@ class Check_Base(object):
                 if 'powerconsul' in line:
                     continue
 
-                # Filter string found, return OK
-                if self.procStr in line:
-                    POWERCONSUL.LOG.info('Discovered process filter string: [{0}], set state -> passing'.format(self.procStr), method='checkProcStr')
+                # Process string
+                if (self.procStr) and (self.procStr in line):
+                    POWERCONSUL.LOG.info('Discovered process filter string: [{0}], set state -> passing'.format(self.procStr), method='checkPS')
+                    return True
+
+                # Process regular expressions
+                if (regex) and (regex.match(line)):
+                    POWERCONSUL.LOG.info('Discovered process filter regex: [{0}], set state -> passing'.format(self.procRe), method='checkPS')
                     return True
         return False
 

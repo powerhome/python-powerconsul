@@ -19,8 +19,8 @@ class Check_Service(Check_Base):
         proc     = Popen(['/usr/bin/env', 'service', self.name, 'status'], stdout=PIPE, stderr=PIPE)
         out, err = proc.communicate()
 
-        # Process string filter exists and is found
-        if self.checkProcStr():
+        # Process table check
+        if self.checkPS():
             return True
 
         # Unrecognized service

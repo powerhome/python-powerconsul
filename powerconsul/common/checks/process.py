@@ -31,8 +31,8 @@ class Check_Process(Check_Base):
         proc     = Popen([self.nagiosScript] + self.nagiosArgs.split(' '), stdout=PIPE, stderr=PIPE)
         out, err = proc.communicate()
 
-        # Process string filter exists and is found
-        if self.checkProcStr():
+        # Process table check
+        if self.checkPS():
             return 0, 'OK'
 
         # Failed to run Nagios check (invalid syntax)
