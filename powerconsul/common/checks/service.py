@@ -23,6 +23,10 @@ class Check_Service(Check_Base):
         if self.checkPS():
             return True
 
+        # Noop file check
+        if self.checkNoop():
+            return True
+
         # Unrecognized service
         if proc.returncode == 1:
             POWERCONSUL.LOG.critical('Failed to determine status for [{0}]: unrecognized service'.format(self.name), method='running', die=True)

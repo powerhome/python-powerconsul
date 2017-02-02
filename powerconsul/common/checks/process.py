@@ -35,6 +35,10 @@ class Check_Process(Check_Base):
         if self.checkPS():
             return 0, 'OK'
 
+        # Noop file check
+        if self.checkNoop():
+            return 0, 'OK'
+
         # Failed to run Nagios check (invalid syntax)
         if proc.returncode == 3:
             POWERCONSUL.LOG.critical('Failed to run Nagios check [{0}]: {1}'.format(self.nagiosScript, err.rstrip()), method='checkNagios', die=True)

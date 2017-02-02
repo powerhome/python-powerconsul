@@ -1,5 +1,6 @@
 import json
 import re
+from os import path
 from subprocess import Popen, PIPE
 
 import powerconsul.common.logger as logger
@@ -16,6 +17,9 @@ class Check_Base(object):
         self.procStr        = POWERCONSUL.ARGS.get('procstr')
         self.procRe         = POWERCONSUL.ARGS.get('procre')
 
+        # Noop file
+        self.noopFile       = POWERCONSUL.ARGS.get('noopfile')
+
         # Parse the Consul service name and bootstrap cluster status
         POWERCONSUL.service = POWERCONSUL.ARGS.get('consulservice', required='Must supply a Consul servicename: powerconsul check <resource> -S <serviceName>')
 
@@ -25,6 +29,15 @@ class Check_Base(object):
 
         # Bootstrap the cluster
         POWERCONSUL.CLUSTER.bootstrap()
+
+    def checkNoop(self):
+        """
+        Look for the existence of a noop file, to indicate all checks should pass.
+        """
+        if self.noopFile and path.isfile(self.noopFile):
+            POWERCONSUL.LOG.info('Noop file discovered [{0}], setting checks to passing state'.format(self.noopFile))
+            return True
+        return False
 
     def checkPS(self):
         """

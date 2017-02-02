@@ -26,6 +26,10 @@ class Check_Crontab(Check_Base):
         Check if a crontab is enabled or not.
         """
 
+        # Noop file
+        if self.checkNoop():
+            return True
+
         # Crontab does not exist
         if not path.isfile(self.path):
             self.error = 'Crontab file not found: {0}'.format(self.path)
