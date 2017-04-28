@@ -47,7 +47,7 @@ class PowerConsulHandler_Watchers(PowerConsulHandler_Base):
 
         # Must have stdin data
         if not select([stdin,],[],[],0.0)[0]:
-            POWERCONSUL.LOG.critical('Command "powerconsul watch" requires data from STDIN!', method='_gerServices', die=True)
+            POWERCONSUL.LOG.critical('Command "powerconsul watch" requires data from STDIN!', method='_getServices', die=True)
 
         try:
             consulInput = json.loads(''.join(stdin.readlines()))

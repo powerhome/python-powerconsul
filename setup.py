@@ -14,7 +14,7 @@ setup(
     author_email     = 'david.j.taylor@powerhrg.com',
     url              = 'http://github.com/powerhome/python-powerconsul',
     license          = 'GPLv3',
-    install_requires = ['python-consul'],
+    install_requires = ['python-consul', 'termcolor', 'six'],
     packages         = find_packages(),
     entry_points     = {
         'console_scripts': [

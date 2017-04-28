@@ -25,7 +25,7 @@ class Check_Service(Check_Base):
 
         # Noop file check
         if self.checkNoop():
-            return True
+            return expects
 
         # Unrecognized service
         if proc.returncode == 1:

@@ -1,4 +1,5 @@
 import json
+from sys import stderr, exit
 from os.path import expanduser, isfile
 
 # Power Consul modules
@@ -15,6 +16,10 @@ class PowerConsul_Config(object):
     def __init__(self):
         self.CONSUL     = self._getConsulConfig()
         self.LOCAL      = self._getLocalConfig()
+
+    def die(self, message, code=1):
+        stderr.write('{0}\n'.format(message))
+        exit(code)
 
     def get(self, configType, key, default=None):
         """
@@ -33,7 +38,7 @@ class PowerConsul_Config(object):
         try:
             return PowerConsul_Collection.create(json.loads(open(CONSUL_CONFIG, 'r').read()))
         except Exception as e:
-            POWERCONSUL.die('Failed to parse Consul agent configuration: {0}'.format(str(e)))
+            self.die('Failed to parse Consul agent configuration: {0}'.format(str(e)))
 
     def _getLocalConfig(self):
         """
@@ -42,13 +47,13 @@ class PowerConsul_Config(object):
 
         # Local configuration should exist
         if not isfile(LOCAL_CONFIG):
-            POWERCONSUL.die('You must create a local configuration file using: powerconsul config bootstrap <options>')
+            self.die('You must create a local configuration file using: powerconsul config bootstrap <options>')
 
         # Parse the local configuration
         try:
             return PowerConsul_Collection.create(json.loads(open(LOCAL_CONFIG).read()))
         except Exception as e:
-            POWERCONSUL.die('Failed to parse local configuration: {0}'.format(str(e)))
+            self.die('Failed to parse local configuration: {0}'.format(str(e)))
 
     @classmethod
     def writeLocal(cls, config):
@@ -59,7 +64,14 @@ class PowerConsul_Config(object):
             with open(LOCAL_CONFIG, 'w') as f:
                 f.write(json.dumps(config))
         except Exception as e:
-            POWERCONSUL.die('Failed to write local configuration: {0}'.format(str(e)))
+            self.die('Failed to write local configuration: {0}'.format(str(e)))
+
+    @classmethod
+    def parseStatic(cls):
+        """
+        Static parsing of configuration for external Python scripts.
+        """
+        return cls()
 
     @classmethod
     def parse(cls):

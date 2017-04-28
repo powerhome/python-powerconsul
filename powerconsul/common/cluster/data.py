@@ -1,5 +1,6 @@
 import re
 import json
+from copy import copy
 
 class PowerConsul_ClusterData(object):
     """
@@ -8,6 +9,7 @@ class PowerConsul_ClusterData(object):
     def __init__(self):
         self._clusterKey = POWERCONSUL.CONFIG.get('local', 'clusterKey')
         self._data       = None
+        self._alldata    = None
 
         # Is cluster data defined
         self.defined     = self._bootstrap()
@@ -17,6 +19,12 @@ class PowerConsul_ClusterData(object):
         Getter method for returning cluster data.
         """
         return self._data
+
+    def getAll(self):
+        """
+        Getter method for returning all cluster data without parsing out by filters.
+        """
+        return self._alldata
 
     def _bootstrap(self):
         """
@@ -37,7 +45,8 @@ class PowerConsul_ClusterData(object):
         POWERCONSUL.LOG.info('Discovered cluster data: {0}'.format(kvpath), method='cluster.data._bootstrap')
 
         # Load cluster data
-        self._data = POWERCONSUL.parseJSON(kvdata, error='Failed to parse cluster data')
+        self._data    = POWERCONSUL.parseJSON(kvdata, error='Failed to parse cluster data')
+        self._alldata = copy(self._data)
 
         # If filtering hosts
         if 'filter' in self._data:

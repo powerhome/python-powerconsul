@@ -9,6 +9,7 @@ from importlib import import_module
 from sys import stderr, exit, stdout
 
 # Power Consul modules
+from powerconsul.kvdb import PowerConsul_KVDB
 from powerconsul.common.output import PowerConsul_Output
 from powerconsul.common.collection import PowerConsul_Collection
 from powerconsul.common.action import PowerConsul_Action
@@ -25,8 +26,9 @@ class PowerConsulCommon(object):
         self.HANDLERS    = None
         self.ARGS        = None
 
-        # Consul API / configuration
+        # Consul API / KV database / configuration
         self.API         = Consul()
+        self.KV          = PowerConsul_KVDB(put_local=False)
         self.CONFIG      = PowerConsul_Config
 
         # Store the host name
@@ -55,6 +57,25 @@ class PowerConsulCommon(object):
 
         # Return any value if found or default
         return default if not data else data['Value']
+
+    def putKV(self, key, value, all_dcs=False):
+        """
+        Create or update a KV datastore value.
+        """
+        try:
+            data = value if not isinstance(value, (dict, list)) else json.dumps(value)
+
+            # Post to all datacenters
+            if all_dcs:
+                self.KV.put(key, data)
+
+            # Local datacenter only
+            else:
+                if not self.API.kv.put(key, data):
+                    POWERCONSUL.LOG.critical('Failed to create update KV for "{0}": API call failed!'.format(key), die=True)
+                POWERCONSUL.LOG.info('Updated KV data for "{0}" -> {1}'.format(key, str(data)))
+        except Exception as e:
+            POWERCONSUL.LOG.critical('Failed to create update KV for "{0}": {1}'.format(key, str(e)), die=True)
 
     def getServiceHealth(self, **kwargs):
         """
