@@ -1,6 +1,8 @@
 Power Consul Service Management
 ===============================
 
+- `Clustering Services`_ with custom init scripts
+
 The ``python-powerconsul`` package is a command-line utility designed to
 work with a server's Consul agent:
 
@@ -105,59 +107,22 @@ expected to exist in the Consul KV store:
 
     <clusterKey>/<consulService>
 
-By Datacenter
-'''''''''''''
+Active/Standby Nodes
+''''''''''''''''''''
 
-Nodes can be clustered into active/standby groups by their datacenters:
+Service clustering works by defining a hash of active/standby nodes in the KV
+path <clusterKey>/<consulService>.
 
 .. code:: json
 
     {
-        "active_datacenters": ["hq"],
-        "standby_datacenters": ["dr"]
+        "active_nodes": ["node1","node2"],
+        "standby_nodes": ["node3","node4"]
     }
 
-Nodes in the active datacenter(s) will be classified in the ``primary``
-role. Nodes in the secondary datacenter(s) will be classified in the
+Nodes in the active node(s) list will be classified in the ``primary``
+role. Nodes in the secondary node(s) list will be classified in the
 ``secondary`` role.
-
-By Nodes
-''''''''
-
-Nodes can be clustered into active/standby groups by their hostnames:
-
-.. code:: json
-
-    {
-        "active_nodes": ["node1", "node2"],
-        "standby_nodes": ["node3", "node4"]
-    }
-
-Nodes in the active list will be classified in the ``primary`` role.
-Nodes in the secondary list will be classified in the ``secondary``
-role. This is the preferred method of clustering as doing it via datacenter has not been tested as extensively.
-
-Cluster Filter
-''''''''''''''
-
-Depending on your configuration, you may want to do more fine-grained filtering. The
-key values inside the filter block should be parseable regular expression strings. This
-is useful if nodes share the same Consul service but should be grouped differently.
-
-.. code:: json
-
-    {
-        "filter": {
-            "^production-mysql-web[0-9]*$": {
-                "active_nodes": ["production-mysql-web1"],
-                "standby_nodes": ["production-mysql-web2"]
-             },
-            "^production-mysql-backend[0-9]*$": {
-                "active_nodes": ["production-mysql-backend1"],
-                "standby_nodes": ["production-mysql-backend2"]
-             }
-        }
-    }
 
 Standalone
 ''''''''''
@@ -170,6 +135,31 @@ Checks
 ~~~~~~
 
 The following are examples on how to set up different types of checks:
+
+Service Group
+'''''''''''''
+
+Service group checks are logical groupings of services under a single
+service definition, using Power Consul clustered enabled init scripts.
+For more information see `Clustering Services`_
+
+.. code:: sh
+
+    # <listOfServices> is a list of local service names, i.e.: apache2,mysql
+    # <consulService> is the check name defined by the Consul agent, i.e.: apacheMySQLServices
+    powerconsul check servicegroup -s <listOfServices> -S <consulService>
+
+For more automated failover scenarios:
+
+.. code:: sh
+
+  # -U: This flag indicates that if the primary ever fails, and the secondary comes online,
+  # update cluster roles to convert the secondary to the primary and require manual failback.
+  #
+  # -F /var/lock/somefile.lock: By providing this flag and the path to a lock file, this
+  # allows manual failover commands from a single node which will rebalance and reassign roles
+  # for the whole cluster.
+  powerconsul check servicegroup -s <listOfServices> -S <consulService> -U -F /var/lock/apacheMysql.lock
 
 Service
 '''''''
@@ -339,3 +329,5 @@ Logs are broken down by action (check/watch/trigger) and further by state/servic
     ./check/service.ntpd.log
     ./check/service.sssd.log
     ./check/service.puppetAgent.log
+
+.. _Clustering Services: CLUSTERED_SERVICES.rst
