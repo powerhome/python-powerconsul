@@ -12,7 +12,7 @@ class Check_Service(Check_Base):
         # Service attributes
         self.name = POWERCONSUL.ARGS.get('service', required='Local service name required: powerconsul check service -s <name>')
 
-    def running(self):
+    def running(self, expects=True):
         """
         Check if a service is running or not.
         """
@@ -41,7 +41,7 @@ class Check_Service(Check_Base):
         """
         Ensure a specific service state.
         """
-        running  = self.running()
+        running  = self.running(expects=expects)
 
         # Service should be running
         if expects == True:
