@@ -12,12 +12,20 @@ class Check_Service(Check_Base):
         # Service attributes
         self.name = POWERCONSUL.ARGS.get('service', required='Local service name required: powerconsul check service -s <name>')
 
-    def running(self):
+    def running(self, expects=True):
         """
         Check if a service is running or not.
         """
         proc     = Popen(['/usr/bin/env', 'service', self.name, 'status'], stdout=PIPE, stderr=PIPE)
         out, err = proc.communicate()
+
+        # Process table check
+        if self.checkPS():
+            return True
+
+        # Noop file check
+        if self.checkNoop():
+            return expects
 
         # Unrecognized service
         if proc.returncode == 1:
@@ -33,7 +41,7 @@ class Check_Service(Check_Base):
         """
         Ensure a specific service state.
         """
-        running  = self.running()
+        running  = self.running(expects=expects)
 
         # Service should be running
         if expects == True:

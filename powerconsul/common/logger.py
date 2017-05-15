@@ -54,7 +54,7 @@ class Logger:
         logger.setLevel(getattr(logging, log_level, 'INFO'))
 
         # Set the file handler
-        lfh = handlers.RotatingFileHandler(log_file, mode='a', maxBytes=10*1024*1024, backupCount=5)
+        lfh = handlers.RotatingFileHandler(log_file, mode='a', maxBytes=10*1024*1024, backupCount=1)
         logger.addHandler(lfh)
 
         # Set the format

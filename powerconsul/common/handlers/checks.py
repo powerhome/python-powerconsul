@@ -8,6 +8,7 @@ from powerconsul.common.handlers.base import PowerConsulHandler_Base
 from powerconsul.common.checks.service import Check_Service
 from powerconsul.common.checks.crontab import Check_Crontab
 from powerconsul.common.checks.process import Check_Process
+from powerconsul.common.checks.servicegroup import Check_ServiceGroup
 
 class PowerConsulHandler_Checks(PowerConsulHandler_Base):
     """
@@ -53,6 +54,30 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
             "long": "nagiosargs",
             "help": "A string of arguments to pass to a Nagios script.",
             "action": "store"
+        },
+        {
+            "short": "P",
+            "long": "procstr",
+            "help": "Look for a string in the process table to indicate an expected task during a critical check.",
+            "action": "store"
+        },
+        {
+            "short": "R",
+            "long": "procre",
+            "help": "Look for a regular expression in the process table to indicate an expected task during a critical check.",
+            "action": "store"
+        },
+        {
+            "short": "F",
+            "long": "noopfile",
+            "help": "If this file exists assume that all checks should pass (such as a deploy lockfile)",
+            "action": "store"
+        },
+        {
+            "short": "U",
+            "long": "updatekv",
+            "help": "In the event of a failover, update KV data to permanently set the new primary as the default.",
+            "action": "store_true"
         }
     ] + OPTIONS
 
@@ -60,6 +85,9 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
     commands = {
         "service": {
             "help": "Check a service running on the system."
+        },
+        "servicegroup": {
+            "help": "Check the health of a logical service group."
         },
         "crontab": {
             "help": "Check a user's crontab on the system."
@@ -108,3 +136,9 @@ class PowerConsulHandler_Checks(PowerConsulHandler_Base):
         Check a service state.
         """
         self._check(Check_Service())
+
+    def servicegroup(self):
+        """
+        Check a logical service grouping.
+        """
+        self._check(Check_ServiceGroup())

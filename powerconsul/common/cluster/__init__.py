@@ -23,6 +23,9 @@ class PowerConsul_Cluster(object):
         # Cluster data key / cluster data
         self.data        = PowerConsul_ClusterData()
 
+        # Should we update the cluster data in KV store if primary fails
+        self.updatekv    = POWERCONSUL.ARGS.get('updatekv', default=False)
+
         # Cluster roles
         self.roles       = POWERCONSUL.COLLECTION.create({
             'primary': 'primary',
